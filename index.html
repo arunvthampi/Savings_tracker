@@ -1,0 +1,2409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUALTRIM – Arun's Finance OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        :root { --primary: #00d4aa; }
+        * { transition-property: color, background-color, border-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .heading-font { font-family: 'Space Grotesk', sans-serif; }
+        .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 25px 50px 12px rgb(0 212 170 / 0.15); }
+        .sidebar-link { position: relative; cursor: pointer; }
+        .sidebar-link.active { color: #fff !important; }
+        .sidebar-link.active::after { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 24px; background: #00d4aa; border-top-right-radius: 9999px; border-bottom-right-radius: 9999px; }
+        .kpi-value { font-variant-numeric: tabular-nums; }
+        .background-grid { background-image: linear-gradient(to right, #00d4aa10 1px, transparent 1px), linear-gradient(to bottom, #00d4aa10 1px, transparent 1px); background-size: 60px 60px; animation: grid-move 40s linear infinite; }
+        @keyframes grid-move { 0% { background-position: 0 0; } 100% { background-position: -60px 60px; } }
+        .live-dot { animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity: 0.4; }
+        #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 9999; transition: opacity 0.35s; pointer-events: none; white-space: nowrap; }
+    </style>
+</head>
+<body class="bg-[#0a2540] text-white min-h-screen background-grid">
+
+<!-- ===================== TOAST ===================== -->
+<div id="toast" class="opacity-0 bg-[#0d2d40] border border-[#00d4aa]/40 text-white text-sm font-medium px-6 py-3 rounded-3xl shadow-2xl">
+    <span id="toast-msg"></span>
+</div>
+
+<!-- ===================== HEADER ===================== -->
+<div class="border-b border-white/10 bg-[#0a2540]/90 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-x-3 shrink-0">
+            <div class="w-9 h-9 bg-[#00d4aa] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold text-2xl">Q</div>
+            <h1 class="heading-font text-2xl tracking-[-1px]">QUALTRIM</h1>
+            <span class="text-xs font-medium bg-[#00d4aa]/10 text-[#00d4aa] px-3 py-1 rounded-3xl border border-[#00d4aa]/30">ARUN v2.9c</span>
+        </div>
+        <div class="flex items-center gap-x-5 flex-wrap justify-end">
+            <div class="flex items-center gap-x-2 text-sm">
+                <span class="relative flex h-3 w-3" id="market-dot-wrap">
+                    <span id="market-dot-pulse" class="live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span id="market-dot-core" class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span id="market-status-text" class="font-medium text-emerald-400 hidden sm:inline">Market OPEN</span>
+                <span id="current-date" class="text-white/70 font-medium hidden md:inline"></span>
+                <span id="current-time" class="font-mono text-white/70"></span>
+            </div>
+            <div class="flex items-center gap-x-2 text-right">
+                <div>
+                    <div class="font-semibold text-sm">Arun Finance OS</div>
+                    <div class="text-xs text-white/60">Net Worth ₹<span id="header-networth">--</span></div>
+                </div>
+                <div class="w-8 h-8 bg-gradient-to-br from-[#00d4aa] to-[#00a88a] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold">A</div>
+            </div>
+            <button onclick="showReminderModal()" class="relative text-white/70 hover:text-white text-xl">
+                <i class="fa-solid fa-bell"></i>
+                <span id="reminder-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center flex">!</span>
+            </button>
+            <!-- CSV Link / Status -->
+            <button onclick="linkCsvFile()" id="csv-link-btn"
+                    class="flex items-center gap-x-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-xs">
+                <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                <span id="csv-link-label">LINK CSV FILE</span>
+            </button>
+            <button onclick="exportToExcel()"
+                    class="flex items-center gap-x-1.5 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-semibold px-4 py-2.5 rounded-3xl text-xs shadow-lg">
+                <i class="fa-solid fa-download"></i>
+                <span>EXPORT CSV</span>
+            </button>
+            <button onclick="showAddModal()"
+                    class="flex items-center gap-x-1.5 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-xs shadow-lg shadow-[#00d4aa]/40">
+                <i class="fa-solid fa-circle-plus"></i><span>QUICK ADD</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== LAYOUT ===================== -->
+<div class="max-w-screen-2xl mx-auto flex">
+
+    <!-- Sidebar -->
+    <div class="w-64 shrink-0 bg-[#0a2540]/90 backdrop-blur-2xl border-r border-white/10 min-h-[calc(100vh-65px)] px-5 py-8 flex flex-col">
+        <nav class="space-y-1">
+            <a onclick="navigateTo(0)"  id="nav-0"  class="sidebar-link active flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white font-medium"><i class="fa-solid fa-gauge-high w-5"></i><span>Overview</span></a>
+            <a onclick="navigateTo(2)"  id="nav-2"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-chart-line w-5"></i><span>Investment Portfolio</span></a>
+            <a onclick="navigateTo(4)"  id="nav-4"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-handshake w-5"></i><span>Bonds & Fixed Income</span></a>
+            <a onclick="navigateTo(6)"  id="nav-6"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-sack-dollar w-5"></i><span>Mutual Funds</span></a>
+            <a onclick="navigateTo(8)"  id="nav-8"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-piggy-bank w-5"></i><span>Savings & Bank</span></a>
+            <a onclick="navigateTo(10)" id="nav-10" class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-wallet w-5"></i><span>Salary &amp; Expenses</span></a>
+        </nav>
+        <div class="mt-auto pt-6 border-t border-white/10">
+            <div class="px-4 py-3 bg-white/5 rounded-2xl text-xs">
+                <div class="flex items-center gap-x-2 text-white/60">
+                    <i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>
+                    <span id="save-status">Auto-saved in browser</span>
+                </div>
+                <div id="csv-status" class="mt-1 text-white/40 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 min-w-0 p-6" id="main-content">
+
+        <!-- ===== Screen 0 – Dashboard ===== -->
+        <div id="screen-0">
+            <div class="flex items-start justify-between mb-5 flex-wrap gap-3">
+                <div>
+                    <h2 class="heading-font text-4xl mb-1" id="greeting-text">Good morning, Arun</h2>
+                    <p class="text-white/50 text-sm">Your money is working harder than yesterday. Here's the live snapshot.</p>
+                </div>
+                <button onclick="showEmailSettingsModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-xs">
+                    <i class="fa-solid fa-bell text-amber-400"></i> Email Reminders
+                </button>
+            </div>
+
+            <!-- Row 1: 4 primary KPIs -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="uppercase text-xs tracking-widest text-white/60">Net Worth</p>
+                            <p id="kpi-networth" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
+                            <p id="kpi-networth-change" class="text-xs mt-1 text-white/40">--</p>
+                        </div>
+                        <i class="fa-solid fa-wallet text-3xl text-[#00d4aa]"></i>
+                    </div>
+                </div>
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="uppercase text-xs tracking-widest text-white/60">Total Portfolio</p>
+                            <p id="kpi-portfolio" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
+                            <p id="kpi-portfolio-sub" class="text-xs mt-1 text-white/40">Equity + Bonds + MF</p>
+                        </div>
+                        <i class="fa-solid fa-chart-pie text-3xl text-[#00d4aa]"></i>
+                    </div>
+                </div>
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="uppercase text-xs tracking-widest text-white/60">Bank Savings</p>
+                            <p id="kpi-savings" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
+                            <p class="text-xs mt-1 text-white/40">Liquid balance</p>
+                        </div>
+                        <i class="fa-solid fa-piggy-bank text-3xl text-amber-400"></i>
+                    </div>
+                </div>
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="uppercase text-xs tracking-widest text-white/60">Annual Dividends</p>
+                            <p id="kpi-dividends" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
+                            <p id="kpi-div-monthly" class="text-xs mt-1 text-white/40">--/month passive</p>
+                        </div>
+                        <i class="fa-solid fa-coins text-3xl text-amber-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: 4 secondary KPIs -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/50">Total Invested</p>
+                    <p id="kpi-invested" class="text-2xl font-semibold mt-2 text-[#00d4aa] kpi-value">₹--</p>
+                    <p class="text-xs mt-1 text-white/40">Cost basis</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/50">Unrealised P&amp;L</p>
+                    <p id="kpi-pnl" class="text-2xl font-semibold mt-2 kpi-value">₹--</p>
+                    <p id="kpi-pnl-pct" class="text-xs mt-1 text-white/40">--</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/50">Avg Monthly Salary</p>
+                    <p id="kpi-avg-salary" class="text-2xl font-semibold mt-2 text-emerald-400 kpi-value">₹--</p>
+                    <p class="text-xs mt-1 text-white/40">Last 3 months avg</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/50">Savings Rate</p>
+                    <p id="kpi-savings-rate-ov" class="text-2xl font-semibold mt-2 text-purple-400 kpi-value">--%</p>
+                    <p class="text-xs mt-1 text-white/40">Invested ÷ Salary</p>
+                </div>
+            </div>
+
+            <!-- Row 3: Holdings breakdown + Activity -->
+            <div class="grid grid-cols-12 gap-4 mb-4">
+                <!-- Equity breakdown -->
+                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
+                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Portfolio Breakdown</h3>
+                    <div class="space-y-3" id="ov-breakdown">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#00d4aa] shrink-0"></span><span class="text-sm">Equity</span></div>
+                            <span id="ov-eq-val" class="font-semibold text-sm text-[#00d4aa]">₹--</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-eq-bar" class="bg-[#00d4aa] h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span><span class="text-sm">Bonds / FD</span></div>
+                            <span id="ov-bond-val" class="font-semibold text-sm text-amber-400">₹--</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-bond-bar" class="bg-amber-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-purple-400 shrink-0"></span><span class="text-sm">Mutual Funds</span></div>
+                            <span id="ov-mf-val" class="font-semibold text-sm text-purple-400">₹--</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-mf-bar" class="bg-purple-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0"></span><span class="text-sm">Bank</span></div>
+                            <span id="ov-sav-val" class="font-semibold text-sm text-blue-400">₹--</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-sav-bar" class="bg-blue-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                    </div>
+                </div>
+
+                <!-- Top holdings -->
+                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
+                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Top Holdings</h3>
+                    <div id="ov-top-holdings" class="space-y-2.5 text-sm"></div>
+                </div>
+
+                <!-- Recent activity / last month -->
+                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
+                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Last Month Snapshot</h3>
+                    <div id="ov-last-month" class="space-y-2.5 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Row 4: Charts -->
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 lg:col-span-8 glass rounded-3xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold">Portfolio Growth vs Benchmarks</h3>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addMonthlySnapshot()" class="text-xs bg-[#00d4aa]/20 hover:bg-[#00d4aa]/40 text-[#00d4aa] border border-[#00d4aa]/30 px-3 py-1.5 rounded-2xl font-medium">
+                                <i class="fa-solid fa-plus mr-1"></i>Add Snapshot
+                            </button>
+                            <span class="text-xs text-emerald-400">Updated live</span>
+                        </div>
+                    </div>
+                    <div style="height:260px; position:relative;">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-6">
+                    <h3 class="font-semibold mb-4">Asset Allocation</h3>
+                    <div style="height:200px; position:relative;">
+                        <canvas id="allocationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Screen 2 – Portfolio ===== -->
+        <div id="screen-2" class="hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="heading-font text-3xl">Investment Portfolio <span class="text-sm font-normal text-white/50">(Shares / Equity)</span></h2>
+                <button onclick="refreshLivePrices()" class="flex items-center gap-x-2 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-sm shadow-lg">
+                    <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+                    <span>REFRESH LIVE PRICES + DIVIDENDS</span>
+                </button>
+                <a href="https://www.google.com/finance" target="_blank" class="flex items-center gap-x-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-sm">
+                    <i class="fa-brands fa-google text-blue-400"></i> Google Finance
+                </a>
+            </div>
+            <div class="glass rounded-3xl overflow-x-auto">
+                <table class="w-full text-left min-w-[700px]">
+                    <thead><tr class="border-b border-white/10">
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Ticker</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Qty</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Avg Cost</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">CMP <span class="text-emerald-400">(Live)</span></th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Current Value</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">P&amp;L</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Dividend <span class="text-amber-400">(Annual)</span></th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+                    </tr></thead>
+                    <tbody id="holdings-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                </table>
+            </div>
+            <p class="text-[10px] text-white/30 mt-3 text-center">Real-time prices via Yahoo Finance (NSE India) • Manual edit available</p>
+        </div>
+
+        <!-- ===== Screen 4 – Bonds ===== -->
+        <div id="screen-4" class="hidden">
+            <h2 class="heading-font text-3xl mb-6">Bonds &amp; Fixed Income</h2>
+            <div class="glass rounded-3xl overflow-x-auto">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead><tr class="border-b border-white/10">
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Bond Name</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Invested</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Maturity Value</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain %</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+                    </tr></thead>
+                    <tbody id="bonds-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Screen 6 – Mutual Funds ===== -->
+        <div id="screen-6" class="hidden">
+            <h2 class="heading-font text-3xl mb-6">Mutual Funds</h2>
+            <div class="glass rounded-3xl overflow-x-auto">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead><tr class="border-b border-white/10">
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Fund Name</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Units</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">NAV</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Current Value</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+                    </tr></thead>
+                    <tbody id="mf-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Screen 8 – Savings ===== -->
+        <div id="screen-8" class="hidden">
+            <h2 class="heading-font text-3xl mb-6">Savings &amp; Bank Account</h2>
+            <div class="glass rounded-3xl p-8 max-w-md">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <p class="uppercase text-xs tracking-widest text-white/60">Current Balance</p>
+                        <p id="savings-balance-display" class="text-5xl font-semibold mt-2">₹--</p>
+                    </div>
+                    <i class="fa-solid fa-piggy-bank text-6xl text-amber-400"></i>
+                </div>
+                <button onclick="editSavings()" class="w-full flex items-center justify-center gap-x-3 bg-white/10 hover:bg-white/20 py-5 rounded-3xl font-semibold">
+                    <i class="fa-solid fa-pen"></i> UPDATE SAVINGS BALANCE
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== Screen 10 – Salary & Expenses ===== -->
+        <div id="screen-10" class="hidden">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="heading-font text-3xl">Salary &amp; Expenses</h2>
+                    <p class="text-white/50 text-sm mt-1">Track monthly income, investments &amp; what you actually spend.</p>
+                </div>
+                <button onclick="showAddSalaryModal()" class="flex items-center gap-x-2 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-sm shadow-lg shadow-[#00d4aa]/30">
+                    <i class="fa-solid fa-circle-plus"></i> ADD MONTH
+                </button>
+            </div>
+
+            <!-- KPI cards for salary section -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Monthly Salary</p>
+                    <p id="sal-avg-salary" class="text-2xl font-semibold mt-2 kpi-value text-emerald-400">₹--</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Investment/Month</p>
+                    <p id="sal-avg-invest" class="text-2xl font-semibold mt-2 kpi-value text-[#00d4aa]">₹--</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Expense/Month</p>
+                    <p id="sal-avg-expense" class="text-2xl font-semibold mt-2 kpi-value text-amber-400">₹--</p>
+                </div>
+                <div class="glass rounded-3xl p-5 border border-white/10">
+                    <p class="uppercase text-xs tracking-widest text-white/60">Savings Rate</p>
+                    <p id="sal-savings-rate" class="text-2xl font-semibold mt-2 kpi-value text-purple-400">--%</p>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="glass rounded-3xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold">Monthly Salary vs Investment vs Expense</h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-400 inline-block"></span>Salary</span>
+                        <span class="text-xs text-[#00d4aa] flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-[#00d4aa] inline-block"></span>Invested</span>
+                        <span class="text-xs text-amber-400 flex items-center gap-1"><span class="w-6 h-0.5 bg-amber-400 inline-block rounded"></span>Expense (line)</span>
+                        <span class="text-xs text-red-400 flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-400 inline-block"></span>Debt/EMI</span>
+                    </div>
+                </div>
+                <div style="height:280px; position:relative;">
+                    <canvas id="salaryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Expense breakdown chart -->
+            <div class="glass rounded-3xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="font-semibold">Monthly Expense Breakdown</h3>
+                        <p class="text-xs text-white/40 mt-0.5">Actual spend per month = Salary − Invested − EMI + Bank Balance</p>
+                    </div>
+                    <span class="text-xs text-amber-400 flex items-center gap-1"><span class="w-6 h-0.5 bg-amber-400 inline-block rounded"></span>Expense</span>
+                </div>
+                <div style="height:260px; position:relative;">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="glass rounded-3xl overflow-x-auto">
+                <table class="w-full text-left min-w-[700px]">
+                    <thead><tr class="border-b border-white/10">
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Month</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Salary Received</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Amount Invested</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Balance Left</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Debt / EMI</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Expenses <span class="text-amber-400">(Sal − Invested − EMI + Balance)</span></th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Invest %</th>
+                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+                    </tr></thead>
+                    <tbody id="salary-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                </table>
+            </div>
+            <p class="text-[10px] text-white/30 mt-3 text-center">Expense = Salary − Invested − EMI + Bank Balance. Balance Left = Salary − All Outflows.</p>
+        </div>
+        </div><!-- /main-content -->
+</div><!-- /layout -->
+
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- ADD INVESTMENT -->
+<div id="add-modal" class="hidden modal-overlay" onclick="overlayClose(event,'add-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl">Add Investment</h3>
+            <button onclick="closeModal('add-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="label-sm">Type</label>
+                <select id="add-type" onchange="toggleAddFields()" class="inp mt-1">
+                    <option value="share">Share / Equity</option>
+                    <option value="bond">Bond / Fixed Deposit</option>
+                    <option value="mf">Mutual Fund</option>
+                </select>
+            </div>
+            <!-- Share fields -->
+            <div id="share-fields" class="space-y-3">
+                <div>
+                    <label class="label-sm">Ticker Symbol</label>
+                    <input id="add-ticker" type="text" placeholder="e.g. SUZLON, TCS, NIFTYBEES" class="inp mt-1 uppercase">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-sm">Quantity</label>
+                        <input id="add-qty" type="number" min="1" placeholder="0" class="inp mt-1">
+                    </div>
+                    <div>
+                        <label class="label-sm">Avg Buy Price (₹)</label>
+                        <input id="add-avgcost" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="label-sm">Current Market Price – CMP (₹)</label>
+                        <button type="button" onclick="fetchCmpForAdd()" id="fetch-cmp-btn"
+                            class="text-[10px] bg-emerald-400/20 hover:bg-emerald-400/40 text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH
+                        </button>
+                    </div>
+                    <input id="add-cmp" type="number" step="0.01" min="0" placeholder="Click AUTO-FETCH or type manually" class="inp">
+                    <p id="fetch-cmp-status" class="text-[10px] text-white/40 mt-1 hidden"></p>
+                </div>
+            </div>
+            <!-- Bond fields -->
+            <div id="bond-fields" class="hidden space-y-3">
+                <div>
+                    <label class="label-sm">Bond / FD Name</label>
+                    <input id="add-bond-name" type="text" placeholder="e.g. Muthoot Fincorp NCD" class="inp mt-1">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-sm">Amount Invested (₹)</label>
+                        <input id="add-invested" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+                    </div>
+                    <div>
+                        <label class="label-sm">Maturity Value (₹)</label>
+                        <input id="add-maturity" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+                    </div>
+                </div>
+            </div>
+            <!-- MF fields -->
+            <div id="mf-fields" class="hidden space-y-3">
+                <div>
+                    <label class="label-sm">Fund Name</label>
+                    <input id="add-mf-name" type="text" placeholder="e.g. Mirae Asset Large Cap" class="inp mt-1">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-sm">Units</label>
+                        <input id="add-units" type="number" step="0.001" min="0" placeholder="0.000" class="inp mt-1">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="label-sm">NAV (₹)</label>
+                            <button type="button" onclick="fetchNavForAdd()" 
+                                class="text-[10px] bg-emerald-400/20 hover:bg-emerald-400/40 text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH
+                            </button>
+                        </div>
+                        <input id="add-nav" type="number" step="0.01" min="0" placeholder="Click AUTO-FETCH or type manually" class="inp">
+                        <p id="fetch-nav-status" class="text-[10px] text-white/40 mt-1 hidden"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button onclick="addInvestment()" class="w-full mt-6 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <i class="fa-solid fa-plus mr-2"></i>ADD INVESTMENT
+        </button>
+    </div>
+</div>
+
+<!-- BUY MORE -->
+<div id="buy-modal" class="hidden modal-overlay" onclick="overlayClose(event,'buy-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-sm" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl">Buy More</h3>
+            <button onclick="closeModal('buy-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p id="buy-modal-title" class="text-emerald-400 font-semibold text-sm mb-4"></p>
+        <div class="space-y-4">
+            <div>
+                <label class="label-sm">Additional Quantity</label>
+                <input id="buy-qty" type="number" min="1" placeholder="0" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">Buy Price (₹)</label>
+                <input id="buy-price" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+            </div>
+        </div>
+        <button onclick="confirmBuyMore()" class="w-full mt-6 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <i class="fa-solid fa-plus mr-2"></i>CONFIRM BUY
+        </button>
+    </div>
+</div>
+
+<!-- EDIT -->
+<div id="edit-modal" class="hidden modal-overlay" onclick="overlayClose(event,'edit-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl">Edit Entry</h3>
+            <button onclick="closeModal('edit-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <!-- Share edit -->
+        <div id="edit-share-fields" class="hidden space-y-3">
+            <div>
+                <label class="label-sm">Ticker</label>
+                <input id="edit-ticker" type="text" class="inp mt-1 uppercase">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="label-sm">Quantity</label>
+                    <input id="edit-qty" type="number" class="inp mt-1">
+                </div>
+                <div>
+                    <label class="label-sm">Avg Cost (₹)</label>
+                    <input id="edit-avgcost" type="number" step="0.01" class="inp mt-1">
+                </div>
+            </div>
+            <div>
+                <label class="label-sm">CMP (₹)</label>
+                <input id="edit-cmp" type="number" step="0.01" class="inp mt-1">
+            </div>
+        </div>
+        <!-- Bond edit -->
+        <div id="edit-bond-fields" class="hidden space-y-3">
+            <div>
+                <label class="label-sm">Bond Name</label>
+                <input id="edit-bond-name" type="text" class="inp mt-1">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="label-sm">Invested (₹)</label>
+                    <input id="edit-invested" type="number" step="0.01" class="inp mt-1">
+                </div>
+                <div>
+                    <label class="label-sm">Maturity (₹)</label>
+                    <input id="edit-maturity" type="number" step="0.01" class="inp mt-1">
+                </div>
+            </div>
+        </div>
+        <!-- MF edit -->
+        <div id="edit-mf-fields" class="hidden space-y-3">
+            <div>
+                <label class="label-sm">Fund Name</label>
+                <input id="edit-mf-name" type="text" class="inp mt-1">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="label-sm">Units</label>
+                    <input id="edit-units" type="number" step="0.001" class="inp mt-1">
+                </div>
+                <div>
+                    <label class="label-sm">NAV (₹)</label>
+                    <input id="edit-nav" type="number" step="0.01" class="inp mt-1">
+                </div>
+            </div>
+        </div>
+        <button onclick="saveEdit()" class="w-full mt-6 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE CHANGES
+        </button>
+    </div>
+</div>
+
+<!-- SAVINGS -->
+<div id="savings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'savings-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-sm" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl">Update Savings</h3>
+            <button onclick="closeModal('savings-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div>
+            <label class="label-sm">New Balance (₹)</label>
+            <input id="savings-input" type="number" step="0.01" placeholder="0.00" class="inp mt-1 text-2xl py-4">
+        </div>
+        <button onclick="saveSavings()" class="w-full mt-6 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <i class="fa-solid fa-floppy-disk mr-2"></i>UPDATE BALANCE
+        </button>
+    </div>
+</div>
+
+<!-- SALARY ENTRY -->
+<div id="salary-modal" class="hidden modal-overlay" onclick="overlayClose(event,'salary-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-7 pb-4 shrink-0">
+            <h3 class="heading-font text-2xl" id="salary-modal-title">Add Monthly Entry</h3>
+            <button onclick="closeModal('salary-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4 overflow-y-auto px-7 pb-2" style="scrollbar-width:thin;scrollbar-color:rgba(0,212,170,0.3) transparent;">
+            <div>
+                <label class="label-sm">Month (e.g. Jan 2025)</label>
+                <input id="sal-month" type="text" placeholder="e.g. Apr 2025" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">Salary Received (₹)</label>
+                <input id="sal-salary" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcExpense()">
+            </div>
+            <div>
+                <label class="label-sm">Amount Invested (₹)</label>
+                <input id="sal-invested" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcExpense()">
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-white/60 uppercase tracking-widest">Auto-calculated Expense</span>
+                    <span id="sal-expense-preview" class="text-amber-400 font-semibold text-lg">₹0.00</span>
+                </div>
+                <p class="text-[10px] text-white/40 mt-1">= Salary − (Invested + EMI) + Bank Balance</p>
+            </div>
+            <div>
+                <label class="label-sm">Balance Left in Account (₹) <span class="text-white/40">(optional)</span></label>
+                <input id="sal-balance" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcExpense()">
+            </div>
+            <div>
+                <label class="label-sm">Outstanding Debt / EMI this month (₹) <span class="text-white/40">(optional)</span></label>
+                <input id="sal-debt" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcExpense()">
+                <p class="text-[10px] text-white/40 mt-1">Loans, credit card bills, EMIs paid this month</p>
+            </div>
+            <!-- Mini trend chart shown when there is at least 1 previous entry -->
+            <div id="prev-trend-wrap" class="hidden">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="label-sm">Previous Months — Expense Trend</span>
+                    <span class="text-[10px] text-white/40">Salary · Invested · Expense · Debt · Bank Bal</span>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3" style="height:170px;position:relative;">
+                    <canvas id="prevTrendChart"></canvas>
+                </div>
+            </div>
+            <div id="prev-month-info" class="bg-blue-400/10 border border-blue-400/20 rounded-2xl p-3 hidden">
+                <p class="text-[10px] text-blue-300/70 uppercase tracking-wider mb-1">Previous Month Reference</p>
+                <div id="prev-month-details" class="text-xs text-white/70"></div>
+            </div>
+            <div>
+                <label class="label-sm">Notes <span class="text-white/40">(optional)</span></label>
+                <input id="sal-notes" type="text" placeholder="e.g. Bonus month, extra SIP" class="inp mt-1">
+            </div>
+        </div>
+        </div><!-- /scrollable -->
+        <div class="px-7 pb-7 pt-3 shrink-0">
+            <button onclick="saveSalaryEntry()" class="w-full bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+                <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE ENTRY
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- EMAIL SETTINGS MODAL -->
+<div id="email-settings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'email-settings-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-7 pb-4 shrink-0">
+            <div>
+                <h3 class="heading-font text-2xl">Email Reminders</h3>
+                <p class="text-xs text-white/40 mt-1">Month-end notification via EmailJS</p>
+            </div>
+            <button onclick="closeModal('email-settings-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="overflow-y-auto px-7 pb-4 space-y-4" style="scrollbar-width:thin;scrollbar-color:rgba(0,212,170,0.3) transparent;">
+            <div class="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 text-xs text-amber-300 space-y-1">
+                <p class="font-semibold text-amber-400">One-time setup (2 min)</p>
+                <p>1. Sign up free at <a href="https://emailjs.com" target="_blank" class="underline">emailjs.com</a></p>
+                <p>2. Add Email Service → connect your Gmail</p>
+                <p>3. Create a Template — use the template below</p>
+                <p>4. Paste your Service ID, Template ID &amp; Public Key here</p>
+            </div>
+
+            <!-- Template helper -->
+            <div class="bg-white/5 rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-white/70">EmailJS Template (copy this)</p>
+                    <button onclick="copyEmailTemplate()" class="text-[10px] bg-[#00d4aa]/20 text-[#00d4aa] border border-[#00d4aa]/30 px-2 py-1 rounded-xl">COPY</button>
+                </div>
+                <pre class="text-[10px] text-white/50 whitespace-pre-wrap leading-relaxed" id="email-template-preview">Subject: 📊 QUALTRIM – Time to log {{month_name}}!
+
+Hi Arun,
+
+It's the end of the month — time to update your Finance OS!
+
+Here's your current snapshot:
+• Net Worth: {{net_worth}}
+• Total Portfolio: {{portfolio}}
+• Bank Balance: {{savings}}
+• Annual Dividends: {{dividends}}
+
+👉 Open QUALTRIM: {{app_url}}
+
+Stay on track. Log your salary, expenses & investments for {{month_name}}.
+
+— QUALTRIM Auto-Reminder</pre>
+            </div>
+
+            <div>
+                <label class="label-sm">Your Email Address</label>
+                <input id="ejs-to-email" type="email" placeholder="arun@gmail.com" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">EmailJS Public Key</label>
+                <input id="ejs-public-key" type="text" placeholder="e.g. user_XXXXXXXXXX" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">EmailJS Service ID</label>
+                <input id="ejs-service-id" type="text" placeholder="e.g. service_xxxxxxx" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">EmailJS Template ID</label>
+                <input id="ejs-template-id" type="text" placeholder="e.g. template_xxxxxxx" class="inp mt-1">
+            </div>
+            <div>
+                <label class="label-sm">Remind me on day</label>
+                <select id="ejs-remind-day" class="inp mt-1">
+                    <option value="25">25th of each month</option>
+                    <option value="26">26th of each month</option>
+                    <option value="27">27th of each month</option>
+                    <option value="28" selected>28th of each month</option>
+                    <option value="29">29th of each month</option>
+                    <option value="30">30th of each month</option>
+                    <option value="last">Last day of each month</option>
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="saveEmailSettings()" class="flex-1 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-3 rounded-2xl text-sm">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> SAVE SETTINGS
+                </button>
+                <button onclick="sendTestEmail()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl text-sm border border-white/20">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> SEND TEST
+                </button>
+            </div>
+            <p id="ejs-status" class="text-xs text-center text-white/40 hidden"></p>
+        </div>
+    </div>
+</div>
+
+<!-- REMINDER -->
+<div id="reminder-modal" class="hidden modal-overlay" onclick="overlayClose(event,'reminder-modal')">
+    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl">Monthly Review</h3>
+            <button onclick="closeModal('reminder-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 mb-5">
+            <div class="flex items-start gap-x-3">
+                <i class="fa-solid fa-bell text-amber-400 mt-0.5 text-lg"></i>
+                <div>
+                    <p class="font-semibold text-amber-400">Monthly Portfolio Reminder</p>
+                    <p class="text-sm text-white/70 mt-1">Time for your monthly review! Update prices, check performance, and backup your data.</p>
+                </div>
+            </div>
+        </div>
+        <ul class="space-y-2 text-sm text-white/70 mb-5">
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Refresh live stock prices</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Review bonds &amp; mutual funds</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Update savings balance</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Export CSV backup</li>
+        </ul>
+        <button onclick="dismissReminder()" class="w-full bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <i class="fa-solid fa-check mr-2"></i>GOT IT – REMIND ME NEXT MONTH
+        </button>
+    </div>
+</div>
+
+<!-- ===================== SHARED STYLES (Tailwind can't handle dynamic class strings in JS) ===================== -->
+<style>
+    .inp { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.7rem 1rem; color: #fff; outline: none; font-size: 0.875rem; }
+    .inp:focus { border-color: #00d4aa; }
+    .inp option { background: #0d2d40; }
+    .label-sm { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); }
+</style>
+
+<script>
+// ================================================================
+//  DATA MODEL
+// ================================================================
+let financeData = {
+    netWorth: 12054.46,
+    totalPortfolio: 11954.46,
+    cash: 100,
+    savings: 12500.00,
+    dividends: 409.76,
+    holdings: [
+        { ticker: "SUZLON",   qty: 93, avgCost: 45.00, cmp: 45.59, currentValue: 4239.87 },
+        { ticker: "NIFTYBEES",qty: 11, avgCost: 265.00,cmp: 272.15,currentValue: 2993.65 }
+    ],
+    bonds: [
+        { name: "Muthoot Fincorp NCD", invested: 1996,    maturityValue: 2430,   gainPct: 21.74 },
+        { name: "Muthoot MCred",       invested: 1956.82, maturityValue: 2290.94, gainPct: 17.07 }
+    ],
+    mutualFunds: [],
+    // benchmarkData stores historical monthly snapshots.
+    // updateKPIs updates LAST point in-place. addMonthlySnapshot adds a new point.
+    benchmarkData: {
+        dates:    ["Jan","Feb","Mar","Apr"],
+        portfolio:[0, 2000, 4000, 7233.52],
+        nifty50:  [0, 1950, 3900, 7085.08],
+        sensex:   [0, 1900, 3750, 6800.00],
+        gold:     [0, 1600, 3200, 5800.00],
+        fd:       [0, 1750, 3507, 5270.00]
+    },
+    lastReminderMonth: null,
+    salaryEntries: []
+};
+
+let currentScreen   = 0;
+let growthChart     = null;
+let allocChart      = null;
+let currentBuyType  = null, currentBuyIndex  = null;
+let currentEditType = null, currentEditIndex = null;
+let csvFileHandle   = null;
+
+// ================================================================
+//  LOCALSTORAGE PERSISTENCE
+// ================================================================
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem('qualtrimFinanceData_v28', JSON.stringify(financeData));
+        document.getElementById('save-status').textContent = 'Saved at ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    } catch(e) {}
+    syncCsvFile(); // fire-and-forget
+}
+
+function loadFromLocalStorage() {
+    try {
+        const raw = localStorage.getItem('qualtrimFinanceData_v28');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        financeData = { ...financeData, ...parsed };
+        // Safety guards
+        if (!Array.isArray(financeData.holdings))    financeData.holdings    = [];
+        if (!Array.isArray(financeData.bonds))       financeData.bonds       = [];
+        if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
+        if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+        if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
+            financeData.benchmarkData = { dates:["Jan","Feb","Mar","Apr"], portfolio:[0,2000,4000,7233.52], nifty50:[0,1950,3900,7085.08], sensex:[0,1900,3750,6800.00], gold:[0,1600,3200,5800.00], fd:[0,1750,3507,5270.00] };
+        }
+        // Migrate old niftybees key to nifty50
+        if (financeData.benchmarkData.niftybees && !financeData.benchmarkData.nifty50) {
+            financeData.benchmarkData.nifty50  = financeData.benchmarkData.niftybees;
+            financeData.benchmarkData.sensex   = financeData.benchmarkData.niftybees.map(v=>v*0.96);
+            financeData.benchmarkData.gold     = financeData.benchmarkData.niftybees.map(v=>v*0.82);
+            financeData.benchmarkData.fd       = financeData.benchmarkData.niftybees.map(v=>v*0.74);
+            delete financeData.benchmarkData.niftybees;
+        }
+    } catch(e) {}
+}
+
+// ================================================================
+//  CSV AUTO-SYNC via File System Access API + IndexedDB handle store
+// ================================================================
+const IDB_DB    = 'qualtrim-handles';
+const IDB_STORE = 'fs-handles';
+
+function openIDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_DB, 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+        req.onsuccess  = e => resolve(e.target.result);
+        req.onerror    = () => reject(req.error);
+    });
+}
+async function idbPut(key, val) {
+    const db = await openIDB();
+    return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(val,key); tx.oncomplete=res; tx.onerror=rej; });
+}
+async function idbGet(key) {
+    const db = await openIDB();
+    return new Promise((res)=>{ const tx=db.transaction(IDB_STORE,'readonly'); const req=tx.objectStore(IDB_STORE).get(key); req.onsuccess=()=>res(req.result||null); req.onerror=()=>res(null); });
+}
+
+function generateCsv() {
+    const ts = new Date().toLocaleString('en-IN');
+    let c = `QUALTRIM Finance Export — Arun\nGenerated:,${ts}\n\n`;
+    c += `TYPE,TICKER / NAME,QTY / UNITS / INVESTED,AVG COST / NAV / MATURITY,CMP / CURRENT VALUE,P&L\n`;
+    financeData.holdings.forEach(h => {
+        const avg = h.avgCost || h.cmp;
+        const pnl = ((h.cmp - avg) * h.qty).toFixed(2);
+        c += `Share,${h.ticker},${h.qty},${avg},${h.cmp},${h.currentValue},${pnl}\n`;
+    });
+    financeData.bonds.forEach(b => {
+        const gain = (b.maturityValue - b.invested).toFixed(2);
+        c += `Bond,"${b.name}",${b.invested},${b.maturityValue},${b.gainPct}%,${gain}\n`;
+    });
+    (financeData.mutualFunds||[]).forEach(m => {
+        c += `MutualFund,"${m.name}",${m.units},${m.nav},${m.currentValue},\n`;
+    });
+    c += `Savings,Bank Balance,,,${financeData.savings},\n`;
+    c += `\nSUMMARY\nTotal Portfolio,,,,,${financeData.totalPortfolio}\nNet Worth,,,,,${financeData.netWorth}\n`;
+    return c;
+}
+
+async function syncCsvFile() {
+    if (!csvFileHandle) return;
+    try {
+        // Verify permission without prompting
+        const perm = await csvFileHandle.queryPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+            const w = await csvFileHandle.createWritable();
+            await w.write(generateCsv());
+            await w.close();
+            setCsvStatus('✓ CSV synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}));
+        }
+    } catch(e) { console.warn('CSV sync failed', e); }
+}
+
+async function linkCsvFile() {
+    if (!window.showSaveFilePicker) {
+        showToast('⚠️ File linking requires Chrome or Edge browser.');
+        return;
+    }
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: `QUALTRIM_Arun_${new Date().toISOString().slice(0,10)}.csv`,
+            types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
+        });
+        csvFileHandle = handle;
+        await idbPut('csvHandle', handle);
+        updateCsvLinkBtn(handle.name);
+        await syncCsvFile();
+        showToast('✅ CSV file linked! Auto-saves on every change.');
+    } catch(e) {
+        if (e.name !== 'AbortError') showToast('❌ Could not link file.');
+    }
+}
+
+async function restoreCsvHandle() {
+    const handle = await idbGet('csvHandle');
+    if (handle) {
+        csvFileHandle = handle;
+        updateCsvLinkBtn(handle.name);
+        // Don't auto-sync on restore to avoid permission prompt without user gesture
+    }
+}
+
+function updateCsvLinkBtn(name) {
+    document.getElementById('csv-link-label').textContent = '✓ ' + name;
+    document.getElementById('csv-link-btn').classList.add('border-emerald-400/50', 'text-emerald-300');
+}
+
+function setCsvStatus(msg) {
+    const el = document.getElementById('csv-status');
+    el.textContent = msg; el.classList.remove('hidden');
+}
+
+function exportToExcel() {
+    const blob = new Blob([generateCsv()], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `QUALTRIM_Arun_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    showToast('✅ CSV downloaded! Open in Excel or Google Sheets.');
+}
+
+// ================================================================
+//  RENDER TABLES
+// ================================================================
+function renderHoldings() {
+    let html = '';
+    financeData.holdings.forEach((h, i) => {
+        const avg   = h.avgCost || h.cmp;
+        const pnl   = (h.cmp - avg) * h.qty;
+        const pnlPct= avg ? ((h.cmp - avg) / avg * 100) : 0;
+        const col   = pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+        const sign  = pnl >= 0 ? '+' : '';
+        // Dividend display
+        const divYield = h.dividendYield || 0;
+        const divAmt   = h.annualDividend || 0;
+        const divHtml  = h.isDividendStock
+            ? `<div class="text-amber-400 font-medium">₹${divAmt.toFixed(2)}/sh <span class="text-xs opacity-70">(${divYield.toFixed(2)}%)</span></div><div class="text-[10px] text-amber-300/60">Annual per share</div>`
+            : `<span class="text-white/30 text-xs">Non-dividend</span>`;
+        html += `
+        <tr class="hover:bg-white/5">
+            <td class="px-6 py-5 font-bold">${h.ticker}</td>
+            <td class="px-6 py-5">${h.qty}</td>
+            <td class="px-6 py-5 text-white/60">₹${(+avg).toFixed(2)}</td>
+            <td class="px-6 py-5 text-emerald-400 font-medium">₹${(+h.cmp).toFixed(2)}</td>
+            <td class="px-6 py-5 font-medium">₹${(+h.currentValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-5 ${col}">${sign}₹${Math.abs(pnl).toFixed(2)} <span class="text-xs opacity-70">(${sign}${pnlPct.toFixed(1)}%)</span></td>
+            <td class="px-6 py-5">${divHtml}</td>
+            <td class="px-6 py-5 text-right">
+                <div class="flex items-center gap-2 justify-end">
+                    <button onclick="buyMore('share',${i})" class="flex items-center gap-1 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-plus text-[10px]"></i> BUY MORE</button>
+                    <button onclick="showEditModal('share',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="deleteHolding(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('holdings-table-body').innerHTML = html ||
+        `<tr><td colspan="8" class="px-6 py-14 text-center text-white/40 text-sm">No shares yet — click <strong class="text-white/60">QUICK ADD</strong> to get started.</td></tr>`;
+}
+
+function renderBonds() {
+    let html = '';
+    financeData.bonds.forEach((b, i) => {
+        const gain = (b.maturityValue - b.invested).toFixed(2);
+        html += `
+        <tr class="hover:bg-white/5">
+            <td class="px-6 py-5 font-semibold">${b.name}</td>
+            <td class="px-6 py-5">₹${(+b.invested).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-5 font-medium">₹${(+b.maturityValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-5 text-emerald-400">+₹${gain}</td>
+            <td class="px-6 py-5 text-emerald-400">+${(+b.gainPct).toFixed(2)}%</td>
+            <td class="px-6 py-5 text-right">
+                <div class="flex items-center gap-2 justify-end">
+                    <button onclick="showEditModal('bond',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="deleteBond(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('bonds-table-body').innerHTML = html ||
+        `<tr><td colspan="6" class="px-6 py-14 text-center text-white/40 text-sm">No bonds yet.</td></tr>`;
+}
+
+function renderMutualFunds() {
+    let html = '';
+    (financeData.mutualFunds||[]).forEach((m, i) => {
+        html += `
+        <tr class="hover:bg-white/5">
+            <td class="px-6 py-5 font-semibold">${m.name}</td>
+            <td class="px-6 py-5">${(+m.units).toFixed(3)}</td>
+            <td class="px-6 py-5 text-emerald-400">₹${(+m.nav).toFixed(2)}</td>
+            <td class="px-6 py-5 font-medium">₹${(+m.currentValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-5 text-right">
+                <div class="flex items-center gap-2 justify-end">
+                    <button onclick="showEditModal('mf',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="deleteMF(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('mf-table-body').innerHTML = html ||
+        `<tr><td colspan="5" class="px-6 py-14 text-center text-white/40 text-sm">No mutual funds yet.</td></tr>`;
+}
+
+// ================================================================
+//  KPI UPDATE  ← FIX: updateKPIs does NOT push new chart points
+// ================================================================
+function updateKPIs() {
+    const holdingsSum = financeData.holdings.reduce((s, h) => s + (h.currentValue||0), 0);
+    const bondsSum    = financeData.bonds.reduce((s, b) => s + (b.maturityValue||0), 0);
+    const mfSum       = (financeData.mutualFunds||[]).reduce((s, m) => s + (m.currentValue||0), 0);
+
+    financeData.totalPortfolio = parseFloat((holdingsSum + bondsSum + mfSum).toFixed(2));
+    financeData.netWorth       = parseFloat((financeData.totalPortfolio + financeData.cash + financeData.savings).toFixed(2));
+
+    document.getElementById('kpi-networth') .innerHTML = `₹${financeData.netWorth.toLocaleString('en-IN')}`;
+    document.getElementById('kpi-portfolio').innerHTML = `₹${financeData.totalPortfolio.toLocaleString('en-IN')}`;
+    document.getElementById('kpi-savings')  .innerHTML = `₹${financeData.savings.toLocaleString('en-IN')}`;
+    document.getElementById('kpi-dividends').innerHTML = `₹${financeData.dividends.toLocaleString('en-IN')}`;
+    document.getElementById('header-networth').textContent = financeData.netWorth.toLocaleString('en-IN',{minimumFractionDigits:2});
+
+    const savBal = document.getElementById('savings-balance-display');
+    if (savBal) savBal.textContent = `₹${financeData.savings.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
+
+    // FIX: Update the LAST benchmark point in-place. Never push a new point here.
+    const bd = financeData.benchmarkData;
+    if (bd.portfolio.length > 0) bd.portfolio[bd.portfolio.length - 1] = financeData.totalPortfolio;
+
+    refreshGrowthChart();
+    refreshAllocChart();
+    updateOverview();
+    saveToLocalStorage();
+}
+
+// ================================================================
+//  CHARTS  ← FIX: refreshGrowthChart only updates data, never appends
+// ================================================================
+function refreshGrowthChart() {
+    if (!growthChart) return;
+    const bd = financeData.benchmarkData;
+    growthChart.data.labels               = [...bd.dates];
+    growthChart.data.datasets[0].data     = [...bd.portfolio];
+    growthChart.data.datasets[1].data     = [...(bd.nifty50  || bd.niftybees || [])];
+    growthChart.data.datasets[2].data     = [...(bd.sensex   || [])];
+    growthChart.data.datasets[3].data     = [...(bd.gold     || [])];
+    growthChart.data.datasets[4].data     = [...(bd.fd       || [])];
+    growthChart.options.scales.y.min = 0;
+    growthChart.update('none');
+}
+
+function refreshAllocChart() {
+    if (!allocChart) return;
+    const eq  = financeData.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
+    const bond = financeData.bonds.reduce((s,b)=>s+(b.maturityValue||0),0);
+    const mf  = (financeData.mutualFunds||[]).reduce((s,m)=>s+(m.currentValue||0),0);
+    allocChart.data.datasets[0].data = [
+        +eq.toFixed(2),
+        +financeData.cash.toFixed(2),
+        +(bond+mf).toFixed(2),
+        +financeData.savings.toFixed(2)
+    ];
+    allocChart.update('none');
+}
+
+// ================================================================
+//  NAVIGATION  ← FIX: only render the newly visible tab, not all
+// ================================================================
+function navigateTo(id) {
+    document.getElementById(`screen-${currentScreen}`).classList.add('hidden');
+    const prevNav = document.getElementById(`nav-${currentScreen}`);
+    prevNav.classList.remove('active');
+    prevNav.classList.add('text-white/70');
+
+    currentScreen = id;
+    document.getElementById(`screen-${id}`).classList.remove('hidden');
+    const newNav = document.getElementById(`nav-${id}`);
+    newNav.classList.add('active');
+    newNav.classList.remove('text-white/70');
+
+    // Only re-render the content for the screen we're switching TO
+    if (id === 2)  renderHoldings();
+    if (id === 4)  renderBonds();
+    if (id === 6)  renderMutualFunds();
+    if (id === 10) {
+        renderSalaryTable();
+        if (salaryChart)  { salaryChart.destroy();  salaryChart  = null; }
+        if (expenseChart) { expenseChart.destroy();  expenseChart = null; }
+        setTimeout(() => { initSalaryChart(); refreshSalaryChart(); initExpenseChart(); refreshExpenseChart(); }, 60);
+    }
+    // Overview charts refresh automatically via refreshGrowthChart/refreshAllocChart in updateKPIs
+    // (charts were already updated when data changed, so no extra call needed on tab switch)
+}
+
+// ================================================================
+//  MODALS
+// ================================================================
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    // Destroy mini trend chart when salary modal closes so canvas is clean on reopen
+    if (id === 'salary-modal' && prevTrendChart) {
+        prevTrendChart.destroy();
+        prevTrendChart = null;
+    }
+}
+function overlayClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+function showAddModal() {
+    // Reset fields
+    ['add-ticker','add-qty','add-avgcost','add-cmp','add-bond-name','add-invested','add-maturity','add-mf-name','add-units','add-nav']
+        .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('add-type').value = 'share';
+    toggleAddFields();
+    document.getElementById('add-modal').classList.remove('hidden');
+}
+
+function toggleAddFields() {
+    const t = document.getElementById('add-type').value;
+    document.getElementById('share-fields').classList.toggle('hidden', t !== 'share');
+    document.getElementById('bond-fields') .classList.toggle('hidden', t !== 'bond');
+    document.getElementById('mf-fields')   .classList.toggle('hidden', t !== 'mf');
+}
+
+function addInvestment() {
+    const type = document.getElementById('add-type').value;
+    if (type === 'share') {
+        const ticker  = document.getElementById('add-ticker').value.trim().toUpperCase();
+        const qty     = parseFloat(document.getElementById('add-qty').value);
+        const avgCost = parseFloat(document.getElementById('add-avgcost').value) || 0;
+        const cmp     = parseFloat(document.getElementById('add-cmp').value);
+        if (!ticker || !qty || isNaN(qty) || !cmp || isNaN(cmp)) { showToast('⚠️ Please fill Ticker, Qty and CMP.'); return; }
+        const currentValue = parseFloat((qty * cmp).toFixed(2));
+        const existIdx = financeData.holdings.findIndex(h => h.ticker === ticker);
+        if (existIdx >= 0) {
+            // Merge
+            const h = financeData.holdings[existIdx];
+            const totalQty = h.qty + qty;
+            const newAvg   = ((h.avgCost||h.cmp)*h.qty + (avgCost||cmp)*qty) / totalQty;
+            financeData.holdings[existIdx] = { ticker, qty:totalQty, avgCost:+newAvg.toFixed(2), cmp, currentValue:+(totalQty*cmp).toFixed(2) };
+            showToast(`✅ Added ${qty} shares to existing ${ticker} position.`);
+        } else {
+            financeData.holdings.push({ ticker, qty, avgCost:+avgCost.toFixed(2), cmp, currentValue });
+            showToast(`✅ ${ticker} added to portfolio!`);
+        }
+    } else if (type === 'bond') {
+        const name         = document.getElementById('add-bond-name').value.trim();
+        const invested     = parseFloat(document.getElementById('add-invested').value);
+        const maturityValue= parseFloat(document.getElementById('add-maturity').value);
+        if (!name || isNaN(invested) || isNaN(maturityValue)) { showToast('⚠️ Fill all bond fields.'); return; }
+        const gainPct = +((maturityValue - invested) / invested * 100).toFixed(2);
+        financeData.bonds.push({ name, invested, maturityValue, gainPct });
+        showToast(`✅ Bond "${name}" added!`);
+    } else {
+        const name = document.getElementById('add-mf-name').value.trim();
+        const units= parseFloat(document.getElementById('add-units').value);
+        const nav  = parseFloat(document.getElementById('add-nav').value);
+        if (!name || isNaN(units) || isNaN(nav)) { showToast('⚠️ Fill all mutual fund fields.'); return; }
+        const currentValue = +(units * nav).toFixed(2);
+        financeData.mutualFunds.push({ name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue });
+        showToast(`✅ Fund "${name}" added!`);
+    }
+    closeModal('add-modal');
+    renderHoldings(); renderBonds(); renderMutualFunds();
+    updateKPIs();
+}
+
+function buyMore(type, index) {
+    currentBuyType = type; currentBuyIndex = index;
+    const label = type === 'share' ? `Buying more: ${financeData.holdings[index].ticker} (current qty: ${financeData.holdings[index].qty})` : '';
+    document.getElementById('buy-modal-title').textContent = label;
+    document.getElementById('buy-qty').value   = '';
+    document.getElementById('buy-price').value = '';
+    document.getElementById('buy-modal').classList.remove('hidden');
+}
+
+function confirmBuyMore() {
+    const qty   = parseFloat(document.getElementById('buy-qty').value);
+    const price = parseFloat(document.getElementById('buy-price').value);
+    if (!qty || isNaN(qty) || !price || isNaN(price)) { showToast('⚠️ Enter qty and price.'); return; }
+    if (currentBuyType === 'share') {
+        const h = financeData.holdings[currentBuyIndex];
+        const totalQty = h.qty + qty;
+        const newAvg   = ((h.avgCost||h.cmp)*h.qty + price*qty) / totalQty;
+        financeData.holdings[currentBuyIndex] = {
+            ...h, qty:totalQty, avgCost:+newAvg.toFixed(2), cmp:price, currentValue:+(totalQty*price).toFixed(2)
+        };
+        showToast(`✅ Bought ${qty} more ${h.ticker} @ ₹${price}. New avg: ₹${newAvg.toFixed(2)}`);
+    }
+    closeModal('buy-modal');
+    renderHoldings();
+    updateKPIs();
+}
+
+function showEditModal(type, index) {
+    currentEditType = type; currentEditIndex = index;
+    ['edit-share-fields','edit-bond-fields','edit-mf-fields'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    if (type === 'share') {
+        const h = financeData.holdings[index];
+        document.getElementById('edit-share-fields').classList.remove('hidden');
+        document.getElementById('edit-ticker') .value = h.ticker;
+        document.getElementById('edit-qty')    .value = h.qty;
+        document.getElementById('edit-avgcost').value = h.avgCost || h.cmp;
+        document.getElementById('edit-cmp')    .value = h.cmp;
+    } else if (type === 'bond') {
+        const b = financeData.bonds[index];
+        document.getElementById('edit-bond-fields').classList.remove('hidden');
+        document.getElementById('edit-bond-name').value = b.name;
+        document.getElementById('edit-invested') .value = b.invested;
+        document.getElementById('edit-maturity') .value = b.maturityValue;
+    } else {
+        const m = financeData.mutualFunds[index];
+        document.getElementById('edit-mf-fields').classList.remove('hidden');
+        document.getElementById('edit-mf-name').value = m.name;
+        document.getElementById('edit-units')   .value = m.units;
+        document.getElementById('edit-nav')     .value = m.nav;
+    }
+    document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function saveEdit() {
+    if (currentEditType === 'share') {
+        const ticker  = document.getElementById('edit-ticker') .value.trim().toUpperCase();
+        const qty     = parseFloat(document.getElementById('edit-qty')    .value);
+        const avgCost = parseFloat(document.getElementById('edit-avgcost').value);
+        const cmp     = parseFloat(document.getElementById('edit-cmp')    .value);
+        if (!ticker || isNaN(qty) || isNaN(cmp)) { showToast('⚠️ Fill all fields.'); return; }
+        financeData.holdings[currentEditIndex] = { ticker, qty, avgCost:+avgCost.toFixed(2), cmp, currentValue:+(qty*cmp).toFixed(2) };
+        renderHoldings();
+        showToast(`✅ ${ticker} updated.`);
+    } else if (currentEditType === 'bond') {
+        const name         = document.getElementById('edit-bond-name').value.trim();
+        const invested     = parseFloat(document.getElementById('edit-invested').value);
+        const maturityValue= parseFloat(document.getElementById('edit-maturity').value);
+        if (!name || isNaN(invested) || isNaN(maturityValue)) { showToast('⚠️ Fill all fields.'); return; }
+        const gainPct = +((maturityValue-invested)/invested*100).toFixed(2);
+        financeData.bonds[currentEditIndex] = { name, invested, maturityValue, gainPct };
+        renderBonds();
+        showToast('✅ Bond updated.');
+    } else {
+        const name = document.getElementById('edit-mf-name').value.trim();
+        const units= parseFloat(document.getElementById('edit-units').value);
+        const nav  = parseFloat(document.getElementById('edit-nav')  .value);
+        if (!name || isNaN(units) || isNaN(nav)) { showToast('⚠️ Fill all fields.'); return; }
+        financeData.mutualFunds[currentEditIndex] = { name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue:+(units*nav).toFixed(2) };
+        renderMutualFunds();
+        showToast('✅ Mutual fund updated.');
+    }
+    closeModal('edit-modal');
+    updateKPIs();
+}
+
+function deleteHolding(i) {
+    if (!confirm(`Delete ${financeData.holdings[i].ticker}?`)) return;
+    financeData.holdings.splice(i, 1);
+    renderHoldings(); updateKPIs();
+    showToast('🗑️ Holding deleted and CSV updated.');
+}
+function deleteBond(i) {
+    if (!confirm(`Delete "${financeData.bonds[i].name}"?`)) return;
+    financeData.bonds.splice(i, 1);
+    renderBonds(); updateKPIs();
+    showToast('🗑️ Bond deleted and CSV updated.');
+}
+function deleteMF(i) {
+    if (!confirm(`Delete "${financeData.mutualFunds[i].name}"?`)) return;
+    financeData.mutualFunds.splice(i, 1);
+    renderMutualFunds(); updateKPIs();
+    showToast('🗑️ Mutual fund deleted and CSV updated.');
+}
+
+function editSavings() {
+    document.getElementById('savings-input').value = financeData.savings;
+    document.getElementById('savings-modal').classList.remove('hidden');
+}
+function saveSavings() {
+    const val = parseFloat(document.getElementById('savings-input').value);
+    if (isNaN(val)) { showToast('⚠️ Enter a valid amount.'); return; }
+    financeData.savings = +val.toFixed(2);
+    closeModal('savings-modal');
+    updateKPIs();
+    showToast('✅ Savings updated!');
+}
+
+// ================================================================
+//  REMINDER
+// ================================================================
+function showReminderModal() { document.getElementById('reminder-modal').classList.remove('hidden'); }
+function dismissReminder() {
+    const now = new Date();
+    financeData.lastReminderMonth = `${now.getFullYear()}-${now.getMonth()}`;
+    saveToLocalStorage();
+    document.getElementById('reminder-badge').classList.add('hidden');
+    closeModal('reminder-modal');
+}
+function checkForMonthlyReminder() {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${now.getMonth()}`;
+    if (financeData.lastReminderMonth !== key) {
+        document.getElementById('reminder-badge').classList.remove('hidden');
+    }
+}
+
+// ================================================================
+//  AUTO-FETCH CMP / NAV IN ADD MODAL
+// ================================================================
+
+// ── Core fetch helpers ──
+async function _tryFetch(url, timeoutMs = 9000) {
+    const res = await fetch(url, {
+        signal: AbortSignal.timeout(timeoutMs),
+        headers: { 'Accept': 'text/html,application/json,*/*' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.text();
+}
+
+function _unwrap(text) {
+    try { const w = JSON.parse(text); if (w && typeof w.contents === 'string') return w.contents; } catch {}
+    return text;
+}
+
+// ── CORS proxies ──
+const _PROXIES = [
+    t => `https://corsproxy.io/?${encodeURIComponent(t)}`,
+    t => `https://api.allorigins.win/get?url=${encodeURIComponent(t)}`,
+    t => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(t)}`,
+    t => `https://thingproxy.freeboard.io/fetch/${t}`,
+];
+
+async function _fetchRaw(url, timeoutMs = 9000) {
+    // Try direct first (works on hosted domain)
+    try { return await _tryFetch(url, 6000); } catch {}
+    // Then proxies
+    for (const mkP of _PROXIES) {
+        try { return await _tryFetch(mkP(url), timeoutMs); } catch {}
+    }
+    throw new Error('all failed: ' + url);
+}
+
+// ── Google Finance parsers ──
+// Google Finance page embeds price in a JSON-LD script and in class="YMlKec fxKbKc"
+function _parseGoogleFinanceHTML(html) {
+    // Method 1: JSON-LD structured data
+    const ldMatch = html.match(/"price"\s*:\s*"([\d,]+\.?\d*)"/);
+    if (ldMatch) {
+        const price = parseFloat(ldMatch[1].replace(/,/g, ''));
+        if (price > 0) return price;
+    }
+    // Method 2: data-last-price attribute
+    const dlpMatch = html.match(/data-last-price="([\d.]+)"/);
+    if (dlpMatch) {
+        const price = parseFloat(dlpMatch[1]);
+        if (price > 0) return price;
+    }
+    // Method 3: class="YMlKec fxKbKc" — main price element
+    const ymMatch = html.match(/class="YMlKec fxKbKc"[^>]*>([\d,]+\.?\d*)</);
+    if (ymMatch) {
+        const price = parseFloat(ymMatch[1].replace(/,/g, ''));
+        if (price > 0) return price;
+    }
+    // Method 4: Any large number pattern near "NSE" or "BSE"
+    const nseMatch = html.match(/(?:NSE|BSE)[^<]*<[^>]*>([\d,]+\.?\d+)/);
+    if (nseMatch) {
+        const price = parseFloat(nseMatch[1].replace(/,/g, ''));
+        if (price > 0) return price;
+    }
+    throw new Error('price not found in Google Finance HTML');
+}
+
+function _parseGoogleFinanceSearch(text) {
+    // Google Finance search returns JSON with matches
+    const raw = _unwrap(text);
+    const d = JSON.parse(raw);
+    // Format: [[["TICKER","EXCHANGE","NAME","PRICE","..."...]]]
+    const matches = d?.[0];
+    if (!Array.isArray(matches) || !matches.length) throw new Error('no results');
+    const price = parseFloat(matches[0]?.[3] || matches[0]?.[4]);
+    if (!price || price <= 0) throw new Error('no price in search result');
+    return { price, name: matches[0]?.[2] || '' };
+}
+
+// ── Yahoo Finance parsers ──
+function _parseYahooV7(text) {
+    const d = JSON.parse(_unwrap(text));
+    const q = d?.quoteResponse?.result?.[0];
+    const price = q?.regularMarketPrice;
+    if (!price || price <= 0) throw new Error('no price');
+    return { price, name: q?.shortName || q?.longName || '' };
+}
+function _parseYahooChart(text) {
+    const d = JSON.parse(_unwrap(text));
+    const meta = d?.chart?.result?.[0]?.meta;
+    const price = meta?.regularMarketPrice || meta?.previousClose;
+    if (!price || price <= 0) throw new Error('no price');
+    return { price, name: meta?.shortName || meta?.symbol || '' };
+}
+function _parseYahooSummary(text) {
+    const d = JSON.parse(_unwrap(text));
+    const r = d?.quoteSummary?.result?.[0];
+    const price = r?.price?.regularMarketPrice?.raw;
+    if (!price || price <= 0) throw new Error('no price');
+    return { price, name: r?.price?.shortName || '', summaryDetail: r?.summaryDetail };
+}
+
+// ── Master price fetch: Google Finance first, Yahoo fallback ──
+async function fetchStockPrice(rawTicker) {
+    const ticker  = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
+    const exchanges = ['NSE', 'BSE'];
+
+    // ── 1. Google Finance HTML scrape (most accurate for Indian stocks) ──
+    for (const ex of exchanges) {
+        try {
+            const gUrl = `https://www.google.com/finance/quote/${ticker}:${ex}`;
+            const html = await _fetchRaw(gUrl, 10000);
+            const unwrapped = _unwrap(html);
+            const price = _parseGoogleFinanceHTML(unwrapped);
+            if (price > 0) {
+                const nameMatch = unwrapped.match(/<title>([^(]+)\(/);
+                const name = nameMatch ? nameMatch[1].trim() : ticker;
+                return { price, name, source: `Google Finance (${ex})`, sym: ticker };
+            }
+        } catch {}
+    }
+
+    // ── 2. Google Finance search API ──
+    try {
+        const gSearchUrl = `https://www.google.com/finance/_/GoogleFinanceUi/data/batchexecute?rpcids=search&f.sid=-1&bl=boq_finance-ui_20240101&hl=en&soc-app=162&soc-platform=1&soc-device=1&_reqid=1&rt=c`;
+        // simpler search endpoint
+        const gSearch2 = `https://www.google.com/finance/search?q=${encodeURIComponent(ticker + ' NSE')}&hl=en`;
+        const html2 = await _fetchRaw(gSearch2, 8000);
+        const price = _parseGoogleFinanceHTML(_unwrap(html2));
+        if (price > 0) return { price, name: ticker, source: 'Google Finance Search', sym: ticker };
+    } catch {}
+
+    // ── 3. Yahoo Finance fallbacks ──
+    const yahooSyms = rawTicker.includes('.') ? [rawTicker] : [ticker + '.NS', ticker + '.BO'];
+    for (const ySym of yahooSyms) {
+        const yEndpoints = [
+            [`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, _parseYahooV7],
+            [`https://query2.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, _parseYahooV7],
+            [`https://query1.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, _parseYahooChart],
+            [`https://query2.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, _parseYahooChart],
+            [`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=price,summaryDetail`, _parseYahooSummary],
+        ];
+        for (const [url, fn] of yEndpoints) {
+            try {
+                const text = await _fetchRaw(url, 9000);
+                const result = fn(text);
+                return { ...result, source: 'Yahoo Finance', sym: ySym };
+            } catch {}
+        }
+    }
+
+    throw new Error('Price not found for ' + rawTicker);
+}
+
+// Keep old name as alias so all callers work unchanged
+const fetchYahooPrice = fetchStockPrice;
+
+async function fetchViaProxy(targetUrl, timeoutMs = 10000) {
+    for (const mkP of _PROXIES) {
+        try {
+            const text = await _tryFetch(mkP(targetUrl), timeoutMs);
+            return JSON.parse(_unwrap(text));
+        } catch {}
+    }
+    throw new Error('All proxies failed');
+}
+
+async function fetchCmpForAdd() {
+    const ticker = document.getElementById('add-ticker').value.trim().toUpperCase();
+    if (!ticker) { showToast('⚠️ Enter a Ticker Symbol first.'); return; }
+    const btn    = document.getElementById('fetch-cmp-btn');
+    const status = document.getElementById('fetch-cmp-status');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[9px]"></i> Fetching…';
+    btn.disabled  = true;
+    status.textContent = '⏳ Trying live sources…';
+    status.className   = 'text-[10px] text-white/50 mt-1';
+    status.classList.remove('hidden');
+    try {
+        const { price, name, source } = await fetchStockPrice(ticker);
+        document.getElementById('add-cmp').value = price.toFixed(2);
+        status.textContent = `✅ ${name ? name + ' — ' : ''}₹${price.toFixed(2)} via ${source}`;
+        status.className   = 'text-[10px] text-emerald-400 mt-1';
+        const avgEl = document.getElementById('add-avgcost');
+        if (!avgEl.value) avgEl.value = price.toFixed(2);
+    } catch {
+        status.textContent = '❌ Could not fetch price. Check ticker (e.g. RELIANCE, TCS) or enter manually.';
+        status.className   = 'text-[10px] text-red-400 mt-1';
+    }
+    btn.innerHTML = '<i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH';
+    btn.disabled  = false;
+}
+
+async function fetchNavForAdd() {
+    const fundName = document.getElementById('add-mf-name').value.trim();
+    if (!fundName) { showToast('⚠️ Enter Fund Name first.'); return; }
+    const status = document.getElementById('fetch-nav-status');
+    status.textContent = '⏳ Searching MFAPI…';
+    status.className   = 'text-[10px] text-white/50 mt-1';
+    status.classList.remove('hidden');
+    try {
+        const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(fundName)}`;
+        const res  = await fetch(searchUrl, { signal: AbortSignal.timeout(8000) });
+        const list = await res.json();
+        if (!list || !list.length) throw new Error('No results');
+        const schemeCode = list[0].schemeCode;
+        const schemeName = list[0].schemeName;
+        const navRes  = await fetch(`https://api.mfapi.in/mf/${schemeCode}/latest`, { signal: AbortSignal.timeout(8000) });
+        const navData = await navRes.json();
+        const nav = parseFloat(navData?.data?.[0]?.nav);
+        if (!isNaN(nav) && nav > 0) {
+            document.getElementById('add-nav').value = nav.toFixed(2);
+            status.textContent = `✅ ${schemeName.slice(0,50)} — NAV ₹${nav.toFixed(2)}`;
+            status.className   = 'text-[10px] text-emerald-400 mt-1';
+        } else throw new Error('NAV parse fail');
+    } catch {
+        status.textContent = '⚠️ Could not auto-fetch NAV. Enter manually (try a shorter/exact fund name).';
+        status.className   = 'text-[10px] text-amber-400 mt-1';
+    }
+}
+
+// ================================================================
+//  LIVE PRICE REFRESH  (Yahoo Finance multi-proxy) + Dividend Detection
+// ================================================================
+async function refreshLivePrices() {
+    const icon = document.getElementById('refresh-icon');
+    icon.classList.add('fa-spin');
+    showToast('⏳ Fetching live NSE prices + dividend info…');
+    let updated = 0;
+    await Promise.allSettled(financeData.holdings.map(async h => {
+        try {
+            const { price, sym, summaryDetail } = await fetchYahooPrice(h.ticker);
+            if (price && price > 0) {
+                h.cmp          = +price.toFixed(2);
+                h.currentValue = +(h.qty * h.cmp).toFixed(2);
+                updated++;
+            }
+
+            // Try to get dividend data — available from v10 quoteSummary path
+            let sd = summaryDetail;
+            if (!sd) {
+                try {
+                    const url  = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${sym}?modules=summaryDetail`;
+                    const data = await fetchViaProxy(url, 8000);
+                    sd = data?.quoteSummary?.result?.[0]?.summaryDetail;
+                } catch {}
+            }
+            const divRate  = sd?.dividendRate?.raw  || 0;
+            const divYield = sd?.dividendYield?.raw || 0;
+            if (divRate > 0 || divYield > 0) {
+                h.isDividendStock = true;
+                h.annualDividend  = +divRate.toFixed(2);
+                h.dividendYield   = +(divYield * 100).toFixed(2);
+            } else {
+                h.isDividendStock = false;
+                h.annualDividend  = 0;
+                h.dividendYield   = 0;
+            }
+        } catch {}
+    }));
+    icon.classList.remove('fa-spin');
+    financeData.dividends = +financeData.holdings.reduce((s,h) => s + (h.isDividendStock ? (h.annualDividend||0)*h.qty : 0), 0).toFixed(2);
+    renderHoldings();
+    updateKPIs();
+    saveToLocalStorage();
+    showToast(updated > 0 ? `✅ ${updated} stock(s) refreshed!` : '⚠️ Could not fetch prices — check internet or edit manually.');
+}
+
+// ================================================================
+//  MONTHLY SNAPSHOT (for Growth Chart)
+// ================================================================
+function addMonthlySnapshot() {
+    const label = prompt('Label for this snapshot (e.g. "May 2025"):');
+    if (!label) return;
+    const bd = financeData.benchmarkData;
+    bd.dates.push(label);
+    bd.portfolio.push(financeData.totalPortfolio);
+    // Estimate benchmark growth: use last known values + approximate realistic monthly returns
+    const lastN50 = bd.nifty50[bd.nifty50.length-1]   || financeData.totalPortfolio;
+    const lastSX  = bd.sensex[bd.sensex.length-1]      || financeData.totalPortfolio;
+    const lastGld = bd.gold[bd.gold.length-1]           || financeData.totalPortfolio;
+    const lastFD  = bd.fd[bd.fd.length-1]               || financeData.totalPortfolio;
+    bd.nifty50.push(+(lastN50 * 1.012).toFixed(2));   // ~14.4% annualised
+    bd.sensex.push( +(lastSX  * 1.011).toFixed(2));   // ~13.2% annualised
+    bd.gold.push(   +(lastGld * 1.008).toFixed(2));   // ~9.6%  annualised
+    bd.fd.push(     +(lastFD  * 1.00625).toFixed(2)); // 7.5%   annualised
+    refreshGrowthChart();
+    saveToLocalStorage();
+    showToast(`✅ Snapshot "${label}" added to growth chart.`);
+}
+
+// ================================================================
+//  SALARY & EXPENSES
+// ================================================================
+let salaryChart    = null;
+let expenseChart   = null;
+let prevTrendChart = null;
+let editSalaryIndex = null;
+
+function showAddSalaryModal() {
+    editSalaryIndex = null;
+    document.getElementById('salary-modal-title').textContent = 'Add Monthly Entry';
+    ['sal-month','sal-salary','sal-invested','sal-balance','sal-debt','sal-notes'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('sal-expense-preview').textContent = '₹0.00';
+    showPrevMonthInfo();
+    document.getElementById('salary-modal').classList.remove('hidden');
+}
+
+function autoCalcExpense() {
+    const salary   = parseFloat(document.getElementById('sal-salary').value)   || 0;
+    const invested = parseFloat(document.getElementById('sal-invested').value) || 0;
+    const debt     = parseFloat(document.getElementById('sal-debt').value)     || 0;
+    const balance  = parseFloat(document.getElementById('sal-balance').value)  || 0;
+    const expense  = Math.max(0, salary - (invested + debt) + balance);
+    document.getElementById('sal-expense-preview').textContent = '₹' + expense.toLocaleString('en-IN', {minimumFractionDigits:2});
+}
+
+function showPrevMonthInfo() {
+    const entries = financeData.salaryEntries;
+    const panel   = document.getElementById('prev-month-info');
+    const detail  = document.getElementById('prev-month-details');
+    const trendWrap = document.getElementById('prev-trend-wrap');
+
+    if (!entries.length) {
+        panel.classList.add('hidden');
+        trendWrap.classList.add('hidden');
+        return;
+    }
+
+    // ── Text summary of last month ──
+    const prev = entries[entries.length - 1];
+    panel.classList.remove('hidden');
+    detail.innerHTML = `
+        <div class="grid grid-cols-2 gap-1">
+            <span class="text-white/50">Last month:</span><span class="font-semibold text-white">${prev.month}</span>
+            <span class="text-white/50">Salary:</span><span class="text-emerald-400">₹${prev.salary.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Invested:</span><span class="text-[#00d4aa]">₹${prev.invested.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Expense:</span><span class="text-amber-400">₹${prev.expense.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Debt/EMI:</span><span class="text-red-400">₹${(prev.debt||0).toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Bank bal:</span><span class="text-blue-400">₹${(prev.balance||0).toLocaleString('en-IN')}</span>
+        </div>`;
+
+    // ── Mini line chart of all past months ──
+    trendWrap.classList.remove('hidden');
+
+    // Destroy old chart instance if modal was reopened
+    if (prevTrendChart) { prevTrendChart.destroy(); prevTrendChart = null; }
+
+    const canvas = document.getElementById('prevTrendChart');
+    const labels = entries.map(e => e.month);
+
+    prevTrendChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Salary',
+                    data: entries.map(e => e.salary),
+                    borderColor: '#34d399', backgroundColor: 'transparent',
+                    tension: 0.4, borderWidth: 2, pointRadius: 3,
+                    pointBackgroundColor: '#34d399'
+                },
+                {
+                    label: 'Invested',
+                    data: entries.map(e => e.invested),
+                    borderColor: '#00d4aa', backgroundColor: 'transparent',
+                    tension: 0.4, borderWidth: 2, pointRadius: 3,
+                    pointBackgroundColor: '#00d4aa'
+                },
+                {
+                    label: 'Expense',
+                    data: entries.map(e => e.expense),
+                    borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.08)',
+                    fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4,
+                    pointBackgroundColor: '#fbbf24', pointBorderColor: '#0d2d40', pointBorderWidth: 2
+                },
+                {
+                    label: 'Debt/EMI',
+                    data: entries.map(e => e.debt || 0),
+                    borderColor: '#f87171', backgroundColor: 'transparent',
+                    tension: 0.4, borderWidth: 1.5, pointRadius: 3,
+                    pointBackgroundColor: '#f87171', borderDash: [3,3]
+                },
+                {
+                    label: 'Bank Bal',
+                    data: entries.map(e => e.balance || 0),
+                    borderColor: '#60a5fa', backgroundColor: 'transparent',
+                    tension: 0.4, borderWidth: 1.5, pointRadius: 3,
+                    pointBackgroundColor: '#60a5fa', borderDash: [5,3]
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 300 },
+            plugins: {
+                legend: {
+                    display: true, position: 'bottom',
+                    labels: { color: 'rgba(255,255,255,0.6)', font: { size: 9 }, boxWidth: 10, padding: 8 }
+                },
+                tooltip: {
+                    callbacks: { label: ctx => `${ctx.dataset.label}: ₹${(+ctx.parsed.y).toLocaleString('en-IN')}` }
+                }
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 }, callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v) }
+                },
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 } }
+                }
+            }
+        }
+    });
+}
+
+function saveSalaryEntry() {
+    const month    = document.getElementById('sal-month').value.trim();
+    const salary   = parseFloat(document.getElementById('sal-salary').value);
+    const invested = parseFloat(document.getElementById('sal-invested').value) || 0;
+    const balance  = parseFloat(document.getElementById('sal-balance').value)  || 0;
+    const debt     = parseFloat(document.getElementById('sal-debt').value)    || 0;
+    const notes    = document.getElementById('sal-notes').value.trim();
+    if (!month || isNaN(salary) || salary <= 0) { showToast('⚠️ Month and Salary are required.'); return; }
+    const expense  = +(Math.max(0, salary - (invested + debt) + balance)).toFixed(2);
+    const entry    = { month, salary:+salary.toFixed(2), invested:+invested.toFixed(2), expense, balance:+balance.toFixed(2), debt:+debt.toFixed(2), notes };
+    if (editSalaryIndex !== null) {
+        financeData.salaryEntries[editSalaryIndex] = entry;
+        showToast('✅ Entry updated!');
+    } else {
+        financeData.salaryEntries.push(entry);
+        showToast('✅ Month entry added!');
+    }
+    closeModal('salary-modal');
+    renderSalaryTable();
+    refreshSalaryChart();
+    refreshExpenseChart();
+    saveToLocalStorage();
+}
+
+function editSalaryEntry(i) {
+    editSalaryIndex = i;
+    const e = financeData.salaryEntries[i];
+    document.getElementById('salary-modal-title').textContent = 'Edit Entry – ' + e.month;
+    document.getElementById('sal-month').value    = e.month;
+    document.getElementById('sal-salary').value   = e.salary;
+    document.getElementById('sal-invested').value = e.invested;
+    document.getElementById('sal-balance').value  = e.balance || '';
+    document.getElementById('sal-debt').value     = e.debt    || '';
+    document.getElementById('sal-notes').value    = e.notes   || '';
+    document.getElementById('sal-expense-preview').textContent = '₹' + e.expense.toLocaleString('en-IN',{minimumFractionDigits:2});
+    document.getElementById('salary-modal').classList.remove('hidden');
+}
+
+function deleteSalaryEntry(i) {
+    if (!confirm(`Delete entry for ${financeData.salaryEntries[i].month}?`)) return;
+    financeData.salaryEntries.splice(i, 1);
+    renderSalaryTable();
+    refreshSalaryChart();
+    refreshExpenseChart();
+    saveToLocalStorage();
+    showToast('🗑️ Entry deleted.');
+}
+
+function renderSalaryTable() {
+    const entries = financeData.salaryEntries;
+    if (!entries.length) {
+        document.getElementById('salary-table-body').innerHTML =
+            `<tr><td colspan="8" class="px-6 py-14 text-center text-white/40 text-sm">No entries yet — click <strong class="text-white/60">ADD MONTH</strong> to start tracking.</td></tr>`;
+        updateSalaryKPIs([]);
+        return;
+    }
+    let html = '';
+    entries.forEach((e, i) => {
+        const invPct = e.salary > 0 ? ((e.invested/e.salary)*100).toFixed(1) : '0.0';
+        const investCol = parseFloat(invPct) >= 20 ? 'text-emerald-400' : parseFloat(invPct) >= 10 ? 'text-amber-400' : 'text-red-400';
+        html += `
+        <tr class="hover:bg-white/5">
+            <td class="px-6 py-4 font-semibold">${e.month}</td>
+            <td class="px-6 py-4 text-emerald-400 font-medium">₹${e.salary.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-[#00d4aa]">₹${e.invested.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-white/70">${e.balance > 0 ? '₹'+e.balance.toLocaleString('en-IN',{minimumFractionDigits:2}) : '<span class="text-white/30">—</span>'}</td>
+            <td class="px-6 py-4 text-red-400">${(e.debt||0) > 0 ? '₹'+(e.debt).toLocaleString('en-IN',{minimumFractionDigits:2}) : '<span class="text-white/30">—</span>'}</td>
+            <td class="px-6 py-4 text-amber-400 font-medium">₹${e.expense.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 ${investCol} font-semibold">${invPct}%</td>
+            <td class="px-6 py-4 text-right">
+                <div class="flex items-center gap-2 justify-end">
+                    <button onclick="editSalaryEntry(${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="deleteSalaryEntry(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('salary-table-body').innerHTML = html;
+    updateSalaryKPIs(entries);
+}
+
+function updateSalaryKPIs(entries) {
+    if (!entries.length) {
+        ['sal-avg-salary','sal-avg-invest','sal-avg-expense'].forEach(id => document.getElementById(id).textContent = '₹--');
+        document.getElementById('sal-savings-rate').textContent = '--%';
+        return;
+    }
+    const avgSal  = entries.reduce((s,e)=>s+e.salary,0)   / entries.length;
+    const avgInv  = entries.reduce((s,e)=>s+e.invested,0)  / entries.length;
+    const avgExp  = entries.reduce((s,e)=>s+e.expense,0)   / entries.length;
+    const savRate = avgSal > 0 ? ((avgInv/avgSal)*100).toFixed(1) : '0.0';
+    document.getElementById('sal-avg-salary') .textContent = '₹'+avgSal.toLocaleString('en-IN',{maximumFractionDigits:0});
+    document.getElementById('sal-avg-invest') .textContent = '₹'+avgInv.toLocaleString('en-IN',{maximumFractionDigits:0});
+    document.getElementById('sal-avg-expense').textContent = '₹'+avgExp.toLocaleString('en-IN',{maximumFractionDigits:0});
+    document.getElementById('sal-savings-rate').textContent = savRate + '%';
+}
+
+function initSalaryChart() {
+    if (salaryChart) return; // already initialised
+    const entries = financeData.salaryEntries;
+    salaryChart = new Chart(document.getElementById('salaryChart'), {
+        type: 'bar',
+        data: {
+            labels: entries.map(e=>e.month),
+            datasets: [
+                { label: 'Salary',       data: entries.map(e=>e.salary),   backgroundColor: 'rgba(52,211,153,0.75)', borderRadius: 6, type:'bar' },
+                { label: 'Invested',     data: entries.map(e=>e.invested),  backgroundColor: 'rgba(0,212,170,0.75)',  borderRadius: 6, type:'bar' },
+                {
+                    label: 'Expense',
+                    data: entries.map(e=>e.expense),
+                    type: 'line',
+                    borderColor: '#fbbf24',
+                    backgroundColor: 'rgba(251,191,36,0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#fbbf24',
+                    pointBorderColor: '#0a2540',
+                    pointBorderWidth: 2,
+                    order: 0   // draw on top of bars
+                },
+                { label: 'Debt/EMI',     data: entries.map(e=>e.debt||0),   backgroundColor: 'rgba(239,68,68,0.7)',   borderRadius: 6, type:'bar' }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: true, position:'top', labels:{color:'rgba(255,255,255,0.7)',font:{size:10},boxWidth:12,padding:10} },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ₹${(+ctx.parsed.y).toLocaleString('en-IN')}` } }
+            },
+            scales: {
+                y: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', callback: v=>'₹'+v.toLocaleString('en-IN')} },
+                x: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)'} }
+            }
+        }
+    });
+}
+
+function refreshSalaryChart() {
+    if (!salaryChart) return;
+    const entries = financeData.salaryEntries;
+    salaryChart.data.labels            = entries.map(e=>e.month);
+    salaryChart.data.datasets[0].data  = entries.map(e=>e.salary);
+    salaryChart.data.datasets[1].data  = entries.map(e=>e.invested);
+    salaryChart.data.datasets[2].data  = entries.map(e=>e.expense);
+    salaryChart.data.datasets[3].data  = entries.map(e=>e.debt||0);
+    salaryChart.update('none');
+    refreshExpenseChart();
+}
+
+function initExpenseChart() {
+    if (expenseChart) return;
+    const entries = financeData.salaryEntries;
+
+    expenseChart = new Chart(document.getElementById('expenseChart'), {
+        type: 'line',
+        data: {
+            labels: entries.map(e => e.month),
+            datasets: [{
+                label: 'Expense',
+                data: entries.map(e => e.expense),
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251,191,36,0.10)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2.5,
+                pointRadius: 5,
+                pointBackgroundColor: entries.map(e => {
+                    const maxExp = Math.max(...financeData.salaryEntries.map(x => x.expense), 1);
+                    const r = e.expense / maxExp;
+                    return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+                }),
+                pointBorderColor: '#0a2540',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: false,
+            layout: { padding: { top: 24 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `Expense: ₹${(+ctx.parsed.y).toLocaleString('en-IN')}`,
+                        afterLabel: ctx => {
+                            const e = financeData.salaryEntries[ctx.dataIndex];
+                            if (!e || !e.salary) return '';
+                            return `${((e.expense / e.salary) * 100).toFixed(1)}% of salary`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                    ticks: { color: 'rgba(255,255,255,0.5)', callback: v => '₹' + v.toLocaleString('en-IN') }
+                },
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                    ticks: { color: 'rgba(255,255,255,0.5)' }
+                }
+            }
+        }
+    });
+}
+
+function _expenseColours(entries) {
+    const maxExp = Math.max(...entries.map(e => e.expense), 1);
+    const bg     = entries.map(e => {
+        const r = e.expense / maxExp;
+        return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},0.80)`;
+    });
+    const border = entries.map(e => {
+        const r = e.expense / maxExp;
+        return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+    });
+    return { bg, border };
+}
+
+function refreshExpenseChart() {
+    if (!expenseChart) { initExpenseChart(); return; }
+    const entries = financeData.salaryEntries;
+    const maxExp  = Math.max(...entries.map(e => e.expense), 1);
+    expenseChart.data.labels = entries.map(e => e.month);
+    expenseChart.data.datasets[0].data = entries.map(e => e.expense);
+    expenseChart.data.datasets[0].pointBackgroundColor = entries.map(e => {
+        const r = e.expense / maxExp;
+        return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+    });
+    expenseChart.update('none');
+}
+
+// ================================================================
+//  OVERVIEW ENRICHMENT
+// ================================================================
+function updateOverview() {
+    const fd = financeData;
+    const eq   = fd.holdings.reduce((s,h) => s+(h.currentValue||0), 0);
+    const cost = fd.holdings.reduce((s,h) => s+(h.qty*(h.avgCost||0)), 0);
+    const bond = fd.bonds.reduce((s,b) => s+(b.maturityValue||0), 0);
+    const mf   = (fd.mutualFunds||[]).reduce((s,m) => s+(m.currentValue||0), 0);
+    const total = eq + bond + mf;
+    const nw    = total + (fd.savings||0) + (fd.cash||0);
+
+    // P&L
+    const pnl = eq - cost;
+    const pnlPct = cost > 0 ? ((pnl/cost)*100).toFixed(2) : 0;
+    const pnlEl = document.getElementById('kpi-pnl');
+    const pnlPctEl = document.getElementById('kpi-pnl-pct');
+    if (pnlEl) {
+        pnlEl.textContent = (pnl >= 0 ? '+₹' : '-₹') + Math.abs(pnl).toLocaleString('en-IN', {maximumFractionDigits:0});
+        pnlEl.className = 'text-2xl font-semibold mt-2 kpi-value ' + (pnl >= 0 ? 'text-emerald-400' : 'text-red-400');
+    }
+    if (pnlPctEl) pnlPctEl.textContent = (pnl >= 0 ? '▲ ' : '▼ ') + Math.abs(pnlPct) + '% unrealised';
+
+    // Total invested KPI
+    const invEl = document.getElementById('kpi-invested');
+    if (invEl) invEl.textContent = '₹' + cost.toLocaleString('en-IN', {maximumFractionDigits:0});
+
+    // Portfolio sub-label
+    const portSub = document.getElementById('kpi-portfolio-sub');
+    if (portSub && total > 0) {
+        portSub.textContent = `Eq ${((eq/total)*100).toFixed(0)}% · Bonds ${((bond/total)*100).toFixed(0)}% · MF ${((mf/total)*100).toFixed(0)}%`;
+    }
+
+    // Dividend monthly
+    const divMonthly = document.getElementById('kpi-div-monthly');
+    if (divMonthly && fd.dividends > 0) divMonthly.textContent = '₹' + (fd.dividends/12).toLocaleString('en-IN',{maximumFractionDigits:0}) + '/month passive';
+
+    // Salary stats from salary entries
+    const sal = fd.salaryEntries || [];
+    const last3 = sal.slice(-3);
+    const avgSal = last3.length ? last3.reduce((s,e)=>s+e.salary,0)/last3.length : 0;
+    const avgInv = last3.length ? last3.reduce((s,e)=>s+e.invested,0)/last3.length : 0;
+    const savRate = avgSal > 0 ? ((avgInv/avgSal)*100).toFixed(1) : 0;
+
+    const avgSalEl = document.getElementById('kpi-avg-salary');
+    if (avgSalEl) avgSalEl.textContent = avgSal > 0 ? '₹'+avgSal.toLocaleString('en-IN',{maximumFractionDigits:0}) : '₹--';
+    const srEl = document.getElementById('kpi-savings-rate-ov');
+    if (srEl) {
+        srEl.textContent = savRate + '%';
+        srEl.className = 'text-2xl font-semibold mt-2 kpi-value ' + (savRate >= 20 ? 'text-emerald-400' : savRate >= 10 ? 'text-amber-400' : 'text-red-400');
+    }
+
+    // Breakdown bars
+    const grandTotal = nw || 1;
+    function setBar(valId, barId, val) {
+        const el = document.getElementById(valId);
+        const bar = document.getElementById(barId);
+        if (el) el.textContent = '₹' + val.toLocaleString('en-IN',{maximumFractionDigits:0});
+        if (bar) bar.style.width = Math.min(100,(val/grandTotal)*100).toFixed(1) + '%';
+    }
+    setBar('ov-eq-val',   'ov-eq-bar',   eq);
+    setBar('ov-bond-val', 'ov-bond-bar', bond);
+    setBar('ov-mf-val',   'ov-mf-bar',   mf);
+    setBar('ov-sav-val',  'ov-sav-bar',  fd.savings||0);
+
+    // Top 4 holdings by current value
+    const topEl = document.getElementById('ov-top-holdings');
+    if (topEl) {
+        const sorted = [...fd.holdings].sort((a,b)=>(b.currentValue||0)-(a.currentValue||0)).slice(0,5);
+        if (sorted.length === 0) {
+            topEl.innerHTML = '<p class="text-white/30 text-xs">No holdings yet</p>';
+        } else {
+            topEl.innerHTML = sorted.map(h => {
+                const pnl = h.cmp && h.avgCost ? (((h.cmp-h.avgCost)/h.avgCost)*100).toFixed(1) : null;
+                const col = pnl === null ? '' : parseFloat(pnl) >= 0 ? 'text-emerald-400' : 'text-red-400';
+                return `<div class="flex justify-between items-center py-1 border-b border-white/5">
+                    <span class="font-semibold">${h.ticker}</span>
+                    <div class="text-right">
+                        <div class="font-medium">₹${(h.currentValue||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                        ${pnl !== null ? `<div class="text-[10px] ${col}">${parseFloat(pnl)>=0?'▲':'▼'} ${Math.abs(pnl)}%</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // Last month snapshot
+    const lmEl = document.getElementById('ov-last-month');
+    if (lmEl) {
+        const last = sal[sal.length - 1];
+        if (!last) {
+            lmEl.innerHTML = '<p class="text-white/30 text-xs">No salary entries yet</p>';
+        } else {
+            const invPct = last.salary > 0 ? ((last.invested/last.salary)*100).toFixed(1) : '0';
+            const expPct = last.salary > 0 ? ((last.expense/last.salary)*100).toFixed(1) : '0';
+            lmEl.innerHTML = `
+                <div class="text-[#00d4aa] font-semibold mb-1">${last.month}</div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Salary</span><span class="text-emerald-400 font-medium">₹${last.salary.toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Invested</span><span class="text-[#00d4aa] font-medium">₹${last.invested.toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${invPct}%)</span></span></div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Expense</span><span class="text-amber-400 font-medium">₹${(last.expense||0).toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${expPct}%)</span></span></div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Debt/EMI</span><span class="text-red-400 font-medium">₹${(last.debt||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
+                <div class="flex justify-between py-1"><span class="text-white/50">Bank Bal</span><span class="text-blue-400 font-medium">₹${(last.balance||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
+                ${last.notes ? `<div class="mt-2 text-[10px] text-white/30 italic">"${last.notes}"</div>` : ''}
+            `;
+        }
+    }
+}
+
+// ================================================================
+//  EMAIL REMINDER (EmailJS)
+// ================================================================
+const EJS_KEYS = { toEmail:'', publicKey:'', serviceId:'', templateId:'', remindDay:'28' };
+
+function loadEmailSettings() {
+    const saved = localStorage.getItem('qualtrim_ejs_settings');
+    if (saved) Object.assign(EJS_KEYS, JSON.parse(saved));
+}
+
+function showEmailSettingsModal() {
+    loadEmailSettings();
+    document.getElementById('ejs-to-email').value    = EJS_KEYS.toEmail    || '';
+    document.getElementById('ejs-public-key').value  = EJS_KEYS.publicKey  || '';
+    document.getElementById('ejs-service-id').value  = EJS_KEYS.serviceId  || '';
+    document.getElementById('ejs-template-id').value = EJS_KEYS.templateId || '';
+    document.getElementById('ejs-remind-day').value  = EJS_KEYS.remindDay  || '28';
+    document.getElementById('ejs-status').classList.add('hidden');
+    document.getElementById('email-settings-modal').classList.remove('hidden');
+}
+
+function saveEmailSettings() {
+    EJS_KEYS.toEmail    = document.getElementById('ejs-to-email').value.trim();
+    EJS_KEYS.publicKey  = document.getElementById('ejs-public-key').value.trim();
+    EJS_KEYS.serviceId  = document.getElementById('ejs-service-id').value.trim();
+    EJS_KEYS.templateId = document.getElementById('ejs-template-id').value.trim();
+    EJS_KEYS.remindDay  = document.getElementById('ejs-remind-day').value;
+    localStorage.setItem('qualtrim_ejs_settings', JSON.stringify(EJS_KEYS));
+    const st = document.getElementById('ejs-status');
+    st.textContent = '✅ Settings saved!';
+    st.className = 'text-xs text-center text-emerald-400';
+    st.classList.remove('hidden');
+    setTimeout(() => closeModal('email-settings-modal'), 1200);
+}
+
+function copyEmailTemplate() {
+    const text = document.getElementById('email-template-preview').textContent;
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Template copied!'));
+}
+
+function _buildEmailParams() {
+    const fd = financeData;
+    const now = new Date();
+    const monthName = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    const nw    = fd.netWorth || 0;
+    const port  = fd.totalPortfolio || 0;
+    const sav   = fd.savings || 0;
+    const div   = fd.dividends || 0;
+    return {
+        to_email:   EJS_KEYS.toEmail,
+        month_name: monthName,
+        net_worth:  '₹' + nw.toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+        portfolio:  '₹' + port.toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+        savings:    '₹' + sav.toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+        dividends:  '₹' + div.toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+        app_url:    window.location.href.split('?')[0],
+    };
+}
+
+async function sendTestEmail() {
+    loadEmailSettings();
+    const st = document.getElementById('ejs-status');
+    st.classList.remove('hidden');
+    if (!EJS_KEYS.publicKey || !EJS_KEYS.serviceId || !EJS_KEYS.templateId || !EJS_KEYS.toEmail) {
+        st.textContent = '⚠️ Fill in all fields first, then Save Settings.';
+        st.className = 'text-xs text-center text-amber-400';
+        return;
+    }
+    st.textContent = '⏳ Sending test email…';
+    st.className = 'text-xs text-center text-white/50';
+    try {
+        await emailjs.init(EJS_KEYS.publicKey);
+        await emailjs.send(EJS_KEYS.serviceId, EJS_KEYS.templateId, _buildEmailParams());
+        st.textContent = '✅ Test email sent! Check your inbox.';
+        st.className = 'text-xs text-center text-emerald-400';
+        showToast('✅ Test email sent to ' + EJS_KEYS.toEmail);
+    } catch(e) {
+        st.textContent = '❌ Failed: ' + (e?.text || e?.message || 'Check your EmailJS keys.');
+        st.className = 'text-xs text-center text-red-400';
+    }
+}
+
+async function checkAndSendMonthEndReminder() {
+    loadEmailSettings();
+    if (!EJS_KEYS.publicKey || !EJS_KEYS.serviceId || !EJS_KEYS.templateId || !EJS_KEYS.toEmail) return;
+
+    const now     = new Date();
+    const todayD  = now.getDate();
+    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const triggerDay = EJS_KEYS.remindDay === 'last' ? lastDay : parseInt(EJS_KEYS.remindDay);
+    if (todayD !== triggerDay) return;
+
+    // Only send once per month
+    const sentKey = `qualtrim_reminder_sent_${now.getFullYear()}_${now.getMonth()}`;
+    if (localStorage.getItem(sentKey)) return;
+
+    try {
+        await emailjs.init(EJS_KEYS.publicKey);
+        await emailjs.send(EJS_KEYS.serviceId, EJS_KEYS.templateId, _buildEmailParams());
+        localStorage.setItem(sentKey, '1');
+        showToast('📧 Month-end reminder email sent!');
+    } catch(e) {
+        console.warn('Email reminder failed:', e);
+    }
+}
+
+// ================================================================
+//  TOAST
+// ================================================================
+let _toastTimer = null;
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    el.style.opacity = '1';
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 3500);
+}
+
+// ================================================================
+//  CLOCK & GREETING
+// ================================================================
+function updateClock() {
+    const now = new Date();
+    document.getElementById('current-date').textContent = now.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    updateMarketStatus(now);
+}
+
+function updateMarketStatus(now) {
+    // NSE/BSE trading: Mon–Fri 09:15–15:30 IST (UTC+5:30)
+    const IST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    const day = IST.getUTCDay(); // 0=Sun,6=Sat
+    const hh  = IST.getUTCHours();
+    const mm  = IST.getUTCMinutes();
+    const mins = hh * 60 + mm;
+    const isWeekday = day >= 1 && day <= 5;
+    const isOpenTime = mins >= 555 && mins < 930; // 9:15=555, 15:30=930
+    const isOpen = isWeekday && isOpenTime;
+
+    const txt   = document.getElementById('market-status-text');
+    const pulse = document.getElementById('market-dot-pulse');
+    const core  = document.getElementById('market-dot-core');
+
+    if (isOpen) {
+        txt.textContent = 'NSE OPEN';
+        txt.className = 'font-medium text-emerald-400 hidden sm:inline';
+        pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+        core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-emerald-500';
+    } else {
+        // Check pre-open (9:00–9:15)
+        const isPreOpen = isWeekday && mins >= 540 && mins < 555;
+        if (isPreOpen) {
+            txt.textContent = 'Pre-open';
+            txt.className = 'font-medium text-amber-400 hidden sm:inline';
+            pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75';
+            core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-amber-400';
+        } else {
+            txt.textContent = 'NSE CLOSED';
+            txt.className = 'font-medium text-red-400 hidden sm:inline';
+            pulse.className = 'absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-40';
+            core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-red-500';
+        }
+    }
+}
+function setGreeting() {
+    const h = new Date().getHours();
+    document.getElementById('greeting-text').textContent =
+        (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Arun';
+}
+
+// ================================================================
+//  INIT
+// ================================================================
+window.addEventListener('load', async () => {
+    loadFromLocalStorage();
+    await restoreCsvHandle();
+
+    setGreeting();
+    updateClock();
+    setInterval(updateClock, 30000);
+    setInterval(checkForMonthlyReminder, 60000);
+
+    renderHoldings();
+    renderBonds();
+    renderMutualFunds();
+
+    // Growth Chart
+    const bd = financeData.benchmarkData;
+    growthChart = new Chart(document.getElementById('growthChart'), {
+        type: 'line',
+        data: {
+            labels: [...bd.dates],
+            datasets: [
+                {
+                    label: '📈 Your Portfolio',
+                    data: [...bd.portfolio],
+                    borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.08)',
+                    fill: true, tension: 0.35, borderWidth: 3,
+                    pointRadius: 5, pointBackgroundColor: '#00d4aa', pointBorderColor: '#0a2540', pointBorderWidth: 2
+                },
+                {
+                    label: 'Nifty 50',
+                    data: [...(bd.nifty50 || bd.niftybees || [])],
+                    borderColor: '#f59e0b', backgroundColor: 'transparent',
+                    tension: 0.35, borderWidth: 2, pointRadius: 3,
+                    borderDash: [4,3]
+                },
+                {
+                    label: 'Sensex',
+                    data: [...(bd.sensex || [])],
+                    borderColor: '#a78bfa', backgroundColor: 'transparent',
+                    tension: 0.35, borderWidth: 2, pointRadius: 3,
+                    borderDash: [4,3]
+                },
+                {
+                    label: 'Gold',
+                    data: [...(bd.gold || [])],
+                    borderColor: '#fcd34d', backgroundColor: 'transparent',
+                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
+                    borderDash: [2,4]
+                },
+                {
+                    label: 'FD (7.5% p.a.)',
+                    data: [...(bd.fd || [])],
+                    borderColor: 'rgba(255,255,255,0.3)', backgroundColor: 'transparent',
+                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
+                    borderDash: [2,4]
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: true, position: 'top', labels: { color: 'rgba(255,255,255,0.7)', font:{size:11}, boxWidth: 16, padding: 14 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ₹${(+ctx.parsed.y).toLocaleString('en-IN')}` } }
+            },
+            scales: {
+                y: { min: 0, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', callback: v=>'₹'+v.toLocaleString('en-IN')} },
+                x: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)'} }
+            }
+        }
+    });
+
+    // Allocation Chart
+    allocChart = new Chart(document.getElementById('allocationChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Equity','Cash','Bonds & MF','Savings'],
+            datasets: [{
+                data: [0,0,0,0],
+                backgroundColor:['#00d4aa','rgba(255,255,255,0.2)','#00a88a','#f59e0b'],
+                borderColor: 'transparent', hoverOffset: 6
+            }]
+        },
+        options: {
+            cutout: '75%', animation: false,
+            plugins: { legend: { position:'bottom', labels:{ color:'rgba(255,255,255,0.65)', font:{size:11}, padding:12 } } }
+        }
+    });
+
+    updateKPIs();
+    checkForMonthlyReminder();
+    setTimeout(refreshLivePrices, 1500);
+    loadEmailSettings();
+    setTimeout(checkAndSendMonthEndReminder, 3000);
+});
+</script>
+</body>
+</html>
