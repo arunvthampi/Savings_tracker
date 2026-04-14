@@ -9,75 +9,314 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
-        :root { --primary: #00d4aa; }
-        * { transition-property: color, background-color, border-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        .heading-font { font-family: 'Space Grotesk', sans-serif; }
-        .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); }
-        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 25px 50px 12px rgb(0 212 170 / 0.15); }
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #F0B429;
+            --primary-glow: rgba(240,180,41,0.25);
+            --accent: #FF6B35;
+            --accent2: #00C896;
+            --bg-base: #080C14;
+            --bg-panel: #0D1320;
+            --bg-card: #111827;
+            --border: rgba(240,180,41,0.15);
+            --border-subtle: rgba(255,255,255,0.06);
+            --text-muted: rgba(255,255,255,0.45);
+        }
+
+        * { transition-property: color, background-color, border-color, box-shadow, transform, opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+
+        body { font-family: 'DM Mono', monospace; background: var(--bg-base); color: #E8EAF0; }
+        .heading-font { font-family: 'Syne', sans-serif; letter-spacing: -0.03em; }
+
+        /* ── Animated market-tape background ── */
+        .background-grid {
+            position: relative;
+        }
+        .background-grid::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240,180,41,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 90% 80%, rgba(0,200,150,0.05) 0%, transparent 50%),
+                linear-gradient(to right, rgba(240,180,41,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(240,180,41,0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+            animation: grid-pan 60s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes grid-pan { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 0 0, 0 0, -48px 48px, -48px 48px; } }
+
+        /* Candlestick chart decorative element on sidebar bottom */
+        .sidebar-deco {
+            opacity: 0.15;
+            position: absolute;
+            bottom: 90px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 36px;
+            pointer-events: none;
+        }
+        .sidebar-deco span {
+            flex: 1;
+            border-radius: 2px;
+            animation: candle-flicker 3s ease-in-out infinite;
+        }
+        @keyframes candle-flicker { 0%,100% { opacity: 0.15; } 50% { opacity: 0.35; } }
+
+        /* ── Glass cards ── */
+        .glass {
+            background: linear-gradient(135deg, rgba(17,24,39,0.95) 0%, rgba(13,19,32,0.98) 100%);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+        }
+        .glass-gold {
+            background: linear-gradient(135deg, rgba(240,180,41,0.06) 0%, rgba(17,24,39,0.95) 60%);
+            border: 1px solid rgba(240,180,41,0.2);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px -10px rgba(240,180,41,0.2), 0 0 0 1px rgba(240,180,41,0.15);
+            border-color: rgba(240,180,41,0.3) !important;
+        }
+
+        /* ── Sidebar ── */
         .sidebar-link { position: relative; cursor: pointer; }
         .sidebar-link.active { color: #fff !important; }
-        .sidebar-link.active::after { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 24px; background: #00d4aa; border-top-right-radius: 9999px; border-bottom-right-radius: 9999px; }
-        .kpi-value { font-variant-numeric: tabular-nums; }
-        .background-grid { background-image: linear-gradient(to right, #00d4aa10 1px, transparent 1px), linear-gradient(to bottom, #00d4aa10 1px, transparent 1px); background-size: 60px 60px; animation: grid-move 40s linear infinite; }
-        @keyframes grid-move { 0% { background-position: 0 0; } 100% { background-position: -60px 60px; } }
-        .live-dot { animation: blink 2s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity: 0.4; }
-        #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 9999; transition: opacity 0.35s; pointer-events: none; white-space: nowrap; }
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(90deg, rgba(240,180,41,0.12), transparent);
+            pointer-events: none;
+        }
+        .sidebar-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(180deg, #F0B429, #FF6B35);
+            border-radius: 0 4px 4px 0;
+        }
+        .sidebar-link:hover:not(.active) {
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* ── Typography ── */
+        .kpi-value { font-variant-numeric: tabular-nums; font-family: 'DM Mono', monospace; }
+        
+        /* ── Ticker tape at top of page ── */
+        .ticker-tape {
+            background: rgba(240,180,41,0.06);
+            border-bottom: 1px solid rgba(240,180,41,0.1);
+            overflow: hidden;
+            white-space: nowrap;
+            height: 28px;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-inner {
+            display: inline-flex;
+            gap: 48px;
+            animation: ticker-scroll 30s linear infinite;
+            font-size: 10px;
+            font-family: 'DM Mono', monospace;
+            color: var(--text-muted);
+            padding: 0 24px;
+        }
+        .ticker-inner:hover { animation-play-state: paused; }
+        @keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .ticker-up { color: #00C896; }
+        .ticker-dn { color: #FF4757; }
+
+        /* ── Live dot ── */
+        .live-dot { animation: blink 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(4,7,14,0.88);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex; align-items: center; justify-content: center; padding: 1rem;
+        }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            z-index: 9999; transition: opacity 0.35s; pointer-events: none; white-space: nowrap;
+        }
+
+        /* ── Inputs ── */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { opacity: 0.4; }
+
+        input, select, textarea {
+            background: rgba(255,255,255,0.04) !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            color: #E8EAF0 !important;
+            font-family: 'DM Mono', monospace;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: rgba(240,180,41,0.4) !important;
+            box-shadow: 0 0 0 3px rgba(240,180,41,0.08) !important;
+            outline: none !important;
+        }
+
+        /* ── Progress bars ── */
+        .progress-bar {
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.06);
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ── Pulse ring around logo ── */
+        @keyframes logo-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(240,180,41,0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(240,180,41,0); }
+        }
+        .logo-icon { animation: logo-pulse 3s ease-in-out infinite; }
+
+        /* ── Table rows ── */
+        tbody tr:hover { background: rgba(240,180,41,0.04); }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(240,180,41,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(240,180,41,0.4); }
+
+        /* ── Button primary ── */
+        .btn-primary {
+            background: linear-gradient(135deg, #F0B429, #FF8C00);
+            color: #080C14;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #FFD057, #FFA500);
+            box-shadow: 0 8px 24px rgba(240,180,41,0.4);
+        }
+
+        /* ── Positive/Negative colors ── */
+        .pos { color: #00C896 !important; }
+        .neg { color: #FF4757 !important; }
+
+        /* ── Section header underline ── */
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(240,180,41,0.08);
+            border: 1px solid rgba(240,180,41,0.2);
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 10px;
+            color: #F0B429;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
     </style>
 </head>
-<body class="bg-[#0a2540] text-white min-h-screen background-grid">
+<body class="text-white min-h-screen background-grid" style="background-color: #080C14; position: relative; z-index: 1;">
 
 <!-- ===================== TOAST ===================== -->
-<div id="toast" class="opacity-0 bg-[#0d2d40] border border-[#00d4aa]/40 text-white text-sm font-medium px-6 py-3 rounded-3xl shadow-2xl">
+<div id="toast" class="opacity-0 border text-white text-sm font-medium px-6 py-3 shadow-2xl" style="background: #0D1320; border-color: rgba(240,180,41,0.4); border-radius: 6px; font-family: 'DM Mono', monospace;">
     <span id="toast-msg"></span>
 </div>
 
+<!-- ===================== TICKER TAPE ===================== -->
+<div class="ticker-tape" style="position: relative; z-index: 51;">
+    <div class="ticker-inner" id="ticker-content">
+        <span>NIFTY 50 <span class="ticker-up">▲ 0.84%</span></span>
+        <span>SENSEX <span class="ticker-up">▲ 0.91%</span></span>
+        <span>NIFTY BANK <span class="ticker-dn">▼ 0.23%</span></span>
+        <span>GOLD <span class="ticker-up">▲ 1.12%</span></span>
+        <span>CRUDE OIL <span class="ticker-dn">▼ 0.54%</span></span>
+        <span>USD/INR <span class="ticker-dn">▼ 0.08%</span></span>
+        <span>NIFTY IT <span class="ticker-up">▲ 2.31%</span></span>
+        <span>NIFTY AUTO <span class="ticker-up">▲ 0.47%</span></span>
+        <span>SILVER <span class="ticker-up">▲ 0.78%</span></span>
+        <!-- duplicated for seamless loop -->
+        <span>NIFTY 50 <span class="ticker-up">▲ 0.84%</span></span>
+        <span>SENSEX <span class="ticker-up">▲ 0.91%</span></span>
+        <span>NIFTY BANK <span class="ticker-dn">▼ 0.23%</span></span>
+        <span>GOLD <span class="ticker-up">▲ 1.12%</span></span>
+        <span>CRUDE OIL <span class="ticker-dn">▼ 0.54%</span></span>
+        <span>USD/INR <span class="ticker-dn">▼ 0.08%</span></span>
+        <span>NIFTY IT <span class="ticker-up">▲ 2.31%</span></span>
+        <span>NIFTY AUTO <span class="ticker-up">▲ 0.47%</span></span>
+        <span>SILVER <span class="ticker-up">▲ 0.78%</span></span>
+    </div>
+</div>
+
 <!-- ===================== HEADER ===================== -->
-<div class="border-b border-white/10 bg-[#0a2540]/90 backdrop-blur-xl sticky top-0 z-50">
+<div style="border-bottom: 1px solid rgba(240,180,41,0.12); background: rgba(8,12,20,0.95); backdrop-filter: blur(24px); position: sticky; top: 0; z-index: 50;">
     <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
         <div class="flex items-center gap-x-3 shrink-0">
-            <div class="w-9 h-9 bg-[#00d4aa] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold text-2xl">Q</div>
-            <h1 class="heading-font text-2xl tracking-[-1px]">QUALTRIM</h1>
-            <span class="text-xs font-medium bg-[#00d4aa]/10 text-[#00d4aa] px-3 py-1 rounded-3xl border border-[#00d4aa]/30">v2.9</span>
+            <div class="logo-icon w-9 h-9 flex items-center justify-center font-bold text-lg" style="background: linear-gradient(135deg, #F0B429, #FF6B35); border-radius: 8px; color: #080C14; font-family: 'Syne', sans-serif;">Q</div>
+            <h1 class="heading-font text-2xl" style="color: #F0F2F8; letter-spacing: -0.04em;">QUALTRIM</h1>
+            <span class="section-badge">v2.9</span>
         </div>
         <div class="flex items-center gap-x-5 flex-wrap justify-end">
             <div class="flex items-center gap-x-2 text-sm">
-                <span class="relative flex h-3 w-3" id="market-dot-wrap">
-                    <span id="market-dot-pulse" class="live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span id="market-dot-core" class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <span class="relative flex h-2.5 w-2.5" id="market-dot-wrap">
+                    <span id="market-dot-pulse" class="live-dot absolute inline-flex h-full w-full rounded-full opacity-75" style="background:#00C896;"></span>
+                    <span id="market-dot-core" class="relative inline-flex rounded-full h-2.5 w-2.5" style="background:#00C896;"></span>
                 </span>
-                <span id="market-status-text" class="font-medium text-emerald-400 hidden sm:inline">Market OPEN</span>
-                <span id="current-date" class="text-white/70 font-medium hidden md:inline"></span>
-                <span id="current-time" class="font-mono text-white/70"></span>
+                <span id="market-status-text" class="font-medium hidden sm:inline" style="color:#00C896; font-family:'DM Mono',monospace; font-size:11px;">Market OPEN</span>
+                <span id="current-date" class="hidden md:inline" style="color: rgba(255,255,255,0.4); font-family:'DM Mono',monospace; font-size:11px;"></span>
+                <span id="current-time" style="color: rgba(255,255,255,0.4); font-family:'DM Mono',monospace; font-size:11px;"></span>
             </div>
             <div class="flex items-center gap-x-2 text-right">
                 <div>
-                    <div class="font-semibold text-sm" id="header-username">Finance OS</div>
-                    <div class="text-xs text-white/60">Net Worth ₹<span id="header-networth">--</span></div>
+                    <div class="font-semibold text-sm" id="header-username" style="font-family:'Syne',sans-serif; color:#F0F2F8;">Finance OS</div>
+                    <div style="font-size:10px; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace;">Net Worth ₹<span id="header-networth">--</span></div>
                 </div>
-                <div class="w-8 h-8 bg-gradient-to-br from-[#00d4aa] to-[#00a88a] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold">A</div>
+                <div class="w-8 h-8 flex items-center justify-center font-bold text-sm" style="background: linear-gradient(135deg, #F0B429, #FF6B35); border-radius: 8px; color:#080C14; font-family:'Syne',sans-serif;">A</div>
             </div>
-            <button onclick="showReminderModal()" class="relative text-white/70 hover:text-white text-xl">
-                <i class="fa-solid fa-bell"></i>
+            <button onclick="showReminderModal()" class="relative" style="color: rgba(255,255,255,0.5);" onmouseenter="this.style.color='#F0B429'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">
+                <i class="fa-solid fa-bell text-lg"></i>
                 <span id="reminder-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center flex">!</span>
             </button>
-            <!-- CSV Link / Status -->
             <button onclick="linkCsvFile()" id="csv-link-btn"
-                    class="flex items-center gap-x-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-xs">
-                <i class="fa-solid fa-file-csv text-emerald-400"></i>
-                <span id="csv-link-label">LINK CSV FILE</span>
+                    class="flex items-center gap-x-1.5 border font-semibold px-4 py-2 text-xs"
+                    style="background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); border-radius:6px; color: rgba(255,255,255,0.7); font-family:'DM Mono',monospace;"
+                    onmouseenter="this.style.borderColor='rgba(240,180,41,0.3)'; this.style.color='#F0B429'"
+                    onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='rgba(255,255,255,0.7)'">
+                <i class="fa-solid fa-file-csv" style="color:#00C896;"></i>
+                <span id="csv-link-label">LINK CSV</span>
             </button>
             <button onclick="exportToExcel()"
-                    class="flex items-center gap-x-1.5 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-semibold px-4 py-2.5 rounded-3xl text-xs shadow-lg">
+                    class="flex items-center gap-x-1.5 font-semibold px-4 py-2 text-xs"
+                    style="background:rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.3); border-radius:6px; color:#F0B429; font-family:'DM Mono',monospace;"
+                    onmouseenter="this.style.background='rgba(240,180,41,0.2)'"
+                    onmouseleave="this.style.background='rgba(240,180,41,0.1)'">
                 <i class="fa-solid fa-download"></i>
-                <span>EXPORT CSV</span>
+                <span>EXPORT</span>
             </button>
             <button onclick="showAddModal()"
-                    class="flex items-center gap-x-1.5 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-xs shadow-lg shadow-[#00d4aa]/40">
+                    class="btn-primary flex items-center gap-x-1.5 px-5 py-2 text-xs"
+                    style="border-radius:6px; font-family:'DM Mono',monospace; letter-spacing:0.05em;">
                 <i class="fa-solid fa-circle-plus"></i><span>QUICK ADD</span>
             </button>
         </div>
@@ -88,22 +327,35 @@
 <div class="max-w-screen-2xl mx-auto flex">
 
     <!-- Sidebar -->
-    <div class="w-64 shrink-0 bg-[#0a2540]/90 backdrop-blur-2xl border-r border-white/10 min-h-[calc(100vh-65px)] px-5 py-8 flex flex-col">
+    <div class="w-64 shrink-0 min-h-[calc(100vh-93px)] px-4 py-8 flex flex-col" style="background: rgba(8,12,20,0.98); border-right: 1px solid rgba(240,180,41,0.08); position: relative;">
+        <!-- Decorative mini candlestick chart -->
+        <div class="sidebar-deco">
+            <span style="height:30%; background: #FF4757;"></span>
+            <span style="height:55%; background: #00C896;"></span>
+            <span style="height:40%; background: #FF4757;"></span>
+            <span style="height:80%; background: #00C896;"></span>
+            <span style="height:60%; background: #00C896;"></span>
+            <span style="height:45%; background: #FF4757;"></span>
+            <span style="height:90%; background: #00C896;"></span>
+            <span style="height:70%; background: #00C896;"></span>
+            <span style="height:50%; background: #FF4757;"></span>
+            <span style="height:100%; background: #F0B429;"></span>
+        </div>
         <nav class="space-y-1">
-            <a onclick="navigateTo(0)"  id="nav-0"  class="sidebar-link active flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white font-medium"><i class="fa-solid fa-gauge-high w-5"></i><span>Overview</span></a>
-            <a onclick="navigateTo(2)"  id="nav-2"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-chart-line w-5"></i><span>Investment Portfolio</span></a>
-            <a onclick="navigateTo(4)"  id="nav-4"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-handshake w-5"></i><span>Bonds & Fixed Income</span></a>
-            <a onclick="navigateTo(6)"  id="nav-6"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-sack-dollar w-5"></i><span>Mutual Funds</span></a>
-            <a onclick="navigateTo(8)"  id="nav-8"  class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-piggy-bank w-5"></i><span>Savings & Bank</span></a>
-            <a onclick="navigateTo(10)" id="nav-10" class="sidebar-link flex items-center gap-x-3 px-4 py-3.5 rounded-3xl hover:bg-white/10 text-white/70 font-medium"><i class="fa-solid fa-wallet w-5"></i><span>Salary &amp; Expenses</span></a>
+            <a onclick="navigateTo(0)"  id="nav-0"  class="sidebar-link active flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:#F0B429; font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-gauge-high w-5" style="color:#F0B429;"></i><span>Overview</span></a>
+            <a onclick="navigateTo(2)"  id="nav-2"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-chart-line w-5"></i><span>Portfolio</span></a>
+            <a onclick="navigateTo(4)"  id="nav-4"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-handshake w-5"></i><span>Bonds &amp; Fixed</span></a>
+            <a onclick="navigateTo(6)"  id="nav-6"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-sack-dollar w-5"></i><span>Mutual Funds</span></a>
+            <a onclick="navigateTo(8)"  id="nav-8"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-piggy-bank w-5"></i><span>Savings</span></a>
+            <a onclick="navigateTo(10)" id="nav-10" class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-wallet w-5"></i><span>Salary &amp; Spend</span></a>
         </nav>
-        <div class="mt-auto pt-6 border-t border-white/10">
-            <div class="px-4 py-3 bg-white/5 rounded-2xl text-xs">
-                <div class="flex items-center gap-x-2 text-white/60">
-                    <i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>
-                    <span id="save-status">Auto-saved in browser</span>
+        <div class="mt-auto pt-6" style="border-top: 1px solid rgba(255,255,255,0.06);">
+            <div class="px-4 py-3" style="background: rgba(240,180,41,0.04); border: 1px solid rgba(240,180,41,0.1); border-radius:8px;">
+                <div class="flex items-center gap-x-2" style="color:rgba(255,255,255,0.4); font-size:11px; font-family:'DM Mono',monospace;">
+                    <i class="fa-solid fa-circle-check shrink-0" style="color:#00C896;"></i>
+                    <span id="save-status">Auto-saved locally</span>
                 </div>
-                <div id="csv-status" class="mt-1 text-white/40 hidden"></div>
+                <div id="csv-status" class="mt-1 hidden" style="color:rgba(255,255,255,0.3); font-size:10px; font-family:'DM Mono',monospace;"></div>
             </div>
         </div>
     </div>
@@ -113,68 +365,71 @@
 
         <!-- ===== Screen 0 – Dashboard ===== -->
         <div id="screen-0">
-            <div class="flex items-start justify-between mb-5 flex-wrap gap-3">
+            <div class="flex items-start justify-between mb-6 flex-wrap gap-3">
                 <div>
-                    <h2 class="heading-font text-4xl mb-1" id="greeting-text">Good morning</h2>
-                    <p class="text-white/50 text-sm">Your money is working harder than yesterday. Here's the live snapshot.</p>
+                    <div class="section-badge mb-3"><i class="fa-solid fa-circle-dot"></i> LIVE DASHBOARD</div>
+                    <h2 class="heading-font mb-1" id="greeting-text" style="font-size: 2.5rem; color: #F0F2F8; line-height: 1.1;">Good morning</h2>
+                    <p style="color: rgba(255,255,255,0.4); font-size:13px; font-family:'DM Mono',monospace;">Your capital is compounding. Here's the live snapshot.</p>
                 </div>
-                <button onclick="showEmailSettingsModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-xs">
-                    <i class="fa-solid fa-bell text-amber-400"></i> Email Reminders
+                <button onclick="showEmailSettingsModal()" class="flex items-center gap-2 border font-semibold px-4 py-2.5 text-xs" style="background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.1); border-radius:8px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace;"
+                    onmouseenter="this.style.borderColor='rgba(240,180,41,0.3)'; this.style.color='#F0B429'"
+                    onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='rgba(255,255,255,0.6)'">
+                    <i class="fa-solid fa-bell" style="color:#F0B429;"></i> EMAIL ALERTS
                 </button>
             </div>
 
             <!-- Row 1: 4 primary KPIs -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('networth')">
+                <div class="glass-gold card-hover cursor-pointer select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('networth')">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="uppercase text-xs tracking-widest text-white/60">Net Worth</p>
-                            <p id="kpi-networth" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
-                            <p id="kpi-networth-change" class="text-xs mt-1 text-white/40">--</p>
+                            <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Net Worth</p>
+                            <p id="kpi-networth" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0B429;">₹--</p>
+                            <p id="kpi-networth-change" style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">--</p>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <i class="fa-solid fa-wallet text-3xl text-[#00d4aa]"></i>
-                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                            <i class="fa-solid fa-wallet text-2xl" style="color:#F0B429;"></i>
+                            <span style="font-size:9px; color:rgba(255,255,255,0.25); display:flex; align-items:center; gap:4px; font-family:'DM Mono',monospace;"><i class="fa-solid fa-chevron-down" style="font-size:7px;"></i>details</span>
                         </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('portfolio')">
+                <div class="glass card-hover cursor-pointer select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('portfolio')">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="uppercase text-xs tracking-widest text-white/60">Total Portfolio</p>
-                            <p id="kpi-portfolio" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
-                            <p id="kpi-portfolio-sub" class="text-xs mt-1 text-white/40">Equity + Bonds + MF</p>
+                            <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Total Portfolio</p>
+                            <p id="kpi-portfolio" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0F2F8;">₹--</p>
+                            <p id="kpi-portfolio-sub" style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">Equity + Bonds + MF</p>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <i class="fa-solid fa-chart-pie text-3xl text-[#00d4aa]"></i>
-                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                            <i class="fa-solid fa-chart-pie text-2xl" style="color:#00C896;"></i>
+                            <span style="font-size:9px; color:rgba(255,255,255,0.25); display:flex; align-items:center; gap:4px; font-family:'DM Mono',monospace;"><i class="fa-solid fa-chevron-down" style="font-size:7px;"></i>details</span>
                         </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('savings')">
+                <div class="glass card-hover cursor-pointer select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('savings')">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="uppercase text-xs tracking-widest text-white/60">Bank Savings</p>
-                            <p id="kpi-savings" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
-                            <p class="text-xs mt-1 text-white/40">Liquid balance</p>
+                            <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Bank Savings</p>
+                            <p id="kpi-savings" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0F2F8;">₹--</p>
+                            <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">Liquid balance</p>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <i class="fa-solid fa-piggy-bank text-3xl text-amber-400"></i>
-                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                            <i class="fa-solid fa-piggy-bank text-2xl" style="color:#F0B429;"></i>
+                            <span style="font-size:9px; color:rgba(255,255,255,0.25); display:flex; align-items:center; gap:4px; font-family:'DM Mono',monospace;"><i class="fa-solid fa-chevron-down" style="font-size:7px;"></i>details</span>
                         </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('dividends')">
+                <div class="glass card-hover cursor-pointer select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('dividends')">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="uppercase text-xs tracking-widest text-white/60">Annual Dividends</p>
-                            <p id="kpi-dividends" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
-                            <p id="kpi-div-monthly" class="text-xs mt-1 text-white/40">--/month passive</p>
-                            <p id="kpi-div-breakdown" class="text-[10px] mt-0.5 text-amber-400/60">--</p>
+                            <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Annual Dividends</p>
+                            <p id="kpi-dividends" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0F2F8;">₹--</p>
+                            <p id="kpi-div-monthly" style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">--/month passive</p>
+                            <p id="kpi-div-breakdown" style="font-size:10px; margin-top:2px; color:rgba(240,180,41,0.6); font-family:'DM Mono',monospace;">--</p>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <i class="fa-solid fa-coins text-3xl text-amber-400"></i>
-                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                            <i class="fa-solid fa-coins text-2xl" style="color:#F0B429;"></i>
+                            <span style="font-size:9px; color:rgba(255,255,255,0.25); display:flex; align-items:center; gap:4px; font-family:'DM Mono',monospace;"><i class="fa-solid fa-chevron-down" style="font-size:7px;"></i>details</span>
                         </div>
                     </div>
                 </div>
@@ -182,93 +437,94 @@
 
             <!-- Row 2: 4 secondary KPIs -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('invested')">
-                    <p class="uppercase text-xs tracking-widest text-white/50">Total Invested</p>
-                    <p id="kpi-invested" class="text-2xl font-semibold mt-2 text-[#00d4aa] kpi-value">₹--</p>
-                    <p class="text-xs mt-1 text-white/40">Cost basis <span class="text-white/20 ml-1">· tap for breakdown</span></p>
+                <div class="glass cursor-pointer card-hover select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('invested')">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Total Invested</p>
+                    <p id="kpi-invested" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#00C896;">₹--</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace;">Cost basis <span style="color:rgba(255,255,255,0.15); margin-left:4px;">· tap</span></p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('pnl')">
-                    <p class="uppercase text-xs tracking-widest text-white/50">Unrealised P&amp;L</p>
-                    <p id="kpi-pnl" class="text-2xl font-semibold mt-2 kpi-value">₹--</p>
-                    <p id="kpi-pnl-pct" class="text-xs mt-1 text-white/40">--</p>
+                <div class="glass cursor-pointer card-hover select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('pnl')">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Unrealised P&amp;L</p>
+                    <p id="kpi-pnl" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0F2F8;">₹--</p>
+                    <p id="kpi-pnl-pct" style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace;">--</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('salary')">
-                    <p class="uppercase text-xs tracking-widest text-white/50">Avg Monthly Salary</p>
-                    <p id="kpi-avg-salary" class="text-2xl font-semibold mt-2 text-emerald-400 kpi-value">₹--</p>
-                    <p class="text-xs mt-1 text-white/40">Last 3 months avg</p>
+                <div class="glass cursor-pointer card-hover select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('salary')">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Avg Monthly Salary</p>
+                    <p id="kpi-avg-salary" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#00C896;">₹--</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace;">Last 3 months avg</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('savingsrate')">
-                    <p class="uppercase text-xs tracking-widest text-white/50">Savings Rate</p>
-                    <p id="kpi-savings-rate-ov" class="text-2xl font-semibold mt-2 text-purple-400 kpi-value">--%</p>
-                    <p class="text-xs mt-1 text-white/40">Invested ÷ Salary</p>
+                <div class="glass cursor-pointer card-hover select-none" style="border-radius:12px; padding:20px;" onclick="openKpiDrawer('savingsrate')">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Savings Rate</p>
+                    <p id="kpi-savings-rate-ov" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#a78bfa;">--%</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace;">Invested ÷ Salary</p>
                 </div>
             </div>
 
             <!-- Row 3: Holdings breakdown + Activity -->
             <div class="grid grid-cols-12 gap-4 mb-4">
                 <!-- Equity breakdown -->
-                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
-                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Portfolio Breakdown</h3>
+                <div class="col-span-12 lg:col-span-4 glass" style="border-radius:12px; padding:20px;">
+                    <h3 style="font-weight:600; margin-bottom:16px; font-size:10px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Portfolio Breakdown</h3>
                     <div class="space-y-3" id="ov-breakdown">
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#00d4aa] shrink-0"></span><span class="text-sm">Equity</span></div>
-                            <span id="ov-eq-val" class="font-semibold text-sm text-[#00d4aa]">₹--</span>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 shrink-0" style="background:#F0B429; border-radius:3px;"></span><span style="font-size:13px; font-family:'DM Mono',monospace;">Equity</span></div>
+                            <span id="ov-eq-val" style="font-weight:600; font-size:13px; color:#F0B429; font-family:'DM Mono',monospace;">₹--</span>
                         </div>
-                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-eq-bar" class="bg-[#00d4aa] h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="progress-bar"><div id="ov-eq-bar" class="progress-fill" style="width:0%; background: linear-gradient(90deg, #F0B429, #FF8C00);"></div></div>
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span><span class="text-sm">Bonds / FD</span></div>
-                            <span id="ov-bond-val" class="font-semibold text-sm text-amber-400">₹--</span>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 shrink-0" style="background:#60a5fa; border-radius:3px;"></span><span style="font-size:13px; font-family:'DM Mono',monospace;">Bonds / FD</span></div>
+                            <span id="ov-bond-val" style="font-weight:600; font-size:13px; color:#60a5fa; font-family:'DM Mono',monospace;">₹--</span>
                         </div>
-                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-bond-bar" class="bg-amber-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="progress-bar"><div id="ov-bond-bar" class="progress-fill" style="width:0%; background: #60a5fa;"></div></div>
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-purple-400 shrink-0"></span><span class="text-sm">Mutual Funds</span></div>
-                            <span id="ov-mf-val" class="font-semibold text-sm text-purple-400">₹--</span>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 shrink-0" style="background:#a78bfa; border-radius:3px;"></span><span style="font-size:13px; font-family:'DM Mono',monospace;">Mutual Funds</span></div>
+                            <span id="ov-mf-val" style="font-weight:600; font-size:13px; color:#a78bfa; font-family:'DM Mono',monospace;">₹--</span>
                         </div>
-                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-mf-bar" class="bg-purple-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="progress-bar"><div id="ov-mf-bar" class="progress-fill" style="width:0%; background: #a78bfa;"></div></div>
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0"></span><span class="text-sm">Bank</span></div>
-                            <span id="ov-sav-val" class="font-semibold text-sm text-blue-400">₹--</span>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 shrink-0" style="background:#00C896; border-radius:3px;"></span><span style="font-size:13px; font-family:'DM Mono',monospace;">Bank</span></div>
+                            <span id="ov-sav-val" style="font-weight:600; font-size:13px; color:#00C896; font-family:'DM Mono',monospace;">₹--</span>
                         </div>
-                        <div class="w-full bg-white/10 rounded-full h-1.5"><div id="ov-sav-bar" class="bg-blue-400 h-1.5 rounded-full" style="width:0%"></div></div>
+                        <div class="progress-bar"><div id="ov-sav-bar" class="progress-fill" style="width:0%; background: #00C896;"></div></div>
                     </div>
                 </div>
 
                 <!-- Top holdings -->
-                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
-                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Top Holdings</h3>
-                    <div id="ov-top-holdings" class="space-y-2.5 text-sm"></div>
+                <div class="col-span-12 lg:col-span-4 glass" style="border-radius:12px; padding:20px;">
+                    <h3 style="font-weight:600; margin-bottom:16px; font-size:10px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Top Holdings</h3>
+                    <div id="ov-top-holdings" class="space-y-2.5" style="font-size:13px; font-family:'DM Mono',monospace;"></div>
                 </div>
 
                 <!-- Recent activity / last month -->
-                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-5 border border-white/10">
-                    <h3 class="font-semibold mb-3 text-sm uppercase tracking-wider text-white/60">Last Month Snapshot</h3>
-                    <div id="ov-last-month" class="space-y-2.5 text-sm"></div>
+                <div class="col-span-12 lg:col-span-4 glass" style="border-radius:12px; padding:20px;">
+                    <h3 style="font-weight:600; margin-bottom:16px; font-size:10px; letter-spacing:0.15em; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; text-transform:uppercase;">Last Month Snapshot</h3>
+                    <div id="ov-last-month" class="space-y-2.5" style="font-size:13px; font-family:'DM Mono',monospace;"></div>
                 </div>
             </div>
 
             <!-- Row 4: Charts -->
             <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 lg:col-span-8 glass rounded-3xl p-6">
+                <div class="col-span-12 lg:col-span-8 glass" style="border-radius:12px; padding:24px;">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold">Portfolio Growth vs Benchmarks</h3>
+                        <h3 style="font-weight:600; font-family:'Syne',sans-serif; color:#F0F2F8; font-size:15px;">Portfolio Growth vs Benchmarks</h3>
                         <div class="flex items-center gap-2">
-                            <button onclick="addMonthlySnapshot()" class="text-xs bg-[#00d4aa]/20 hover:bg-[#00d4aa]/40 text-[#00d4aa] border border-[#00d4aa]/30 px-3 py-1.5 rounded-2xl font-medium">
+                            <button onclick="addMonthlySnapshot()" style="font-size:11px; background:rgba(240,180,41,0.1); border:1px solid rgba(240,180,41,0.25); color:#F0B429; border-radius:6px; padding:5px 12px; font-family:'DM Mono',monospace; cursor:pointer;"
+                                onmouseenter="this.style.background='rgba(240,180,41,0.2)'" onmouseleave="this.style.background='rgba(240,180,41,0.1)'">
                                 <i class="fa-solid fa-plus mr-1"></i>Add Snapshot
                             </button>
-                            <span class="text-xs text-emerald-400">Updated live</span>
+                            <span style="font-size:11px; color:#00C896; font-family:'DM Mono',monospace;">● Live</span>
                         </div>
                     </div>
                     <div style="height:260px; position:relative;">
                         <canvas id="growthChart"></canvas>
-                        <div id="growth-chart-empty" style="display:flex;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(10,37,64,0.7);border-radius:1rem;backdrop-filter:blur(2px);">
-                            <i class="fa-solid fa-chart-line text-3xl text-white/30"></i>
-                            <p class="text-white/60 text-sm font-medium">No snapshots yet</p>
-                            <p class="text-white/40 text-xs text-center px-6">Click <strong class="text-[#00d4aa]">+ Add Snapshot</strong> to record today as your baseline, then add another next month to see % growth vs Nifty, Sensex &amp; Gold.</p>
+                        <div id="growth-chart-empty" style="display:flex;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(8,12,20,0.85);border-radius:8px;backdrop-filter:blur(4px);">
+                            <i class="fa-solid fa-chart-line text-3xl" style="color:rgba(240,180,41,0.3);"></i>
+                            <p style="color:rgba(255,255,255,0.5); font-size:13px; font-family:'DM Mono',monospace;">No snapshots yet</p>
+                            <p style="color:rgba(255,255,255,0.35); font-size:11px; text-align:center; padding:0 24px; font-family:'DM Mono',monospace;">Click <strong style="color:#F0B429;">+ Add Snapshot</strong> to record today as your baseline, then add another next month to see % growth vs Nifty, Sensex &amp; Gold.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-6">
-                    <h3 class="font-semibold mb-4">Asset Allocation</h3>
+                <div class="col-span-12 lg:col-span-4 glass" style="border-radius:12px; padding:24px;">
+                    <h3 style="font-weight:600; font-family:'Syne',sans-serif; color:#F0F2F8; font-size:15px; margin-bottom:16px;">Asset Allocation</h3>
                     <div style="height:200px; position:relative;">
                         <canvas id="allocationChart"></canvas>
                     </div>
@@ -279,83 +535,93 @@
         <!-- ===== Screen 2 – Portfolio ===== -->
         <div id="screen-2" class="hidden">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="heading-font text-3xl">Investment Portfolio <span class="text-sm font-normal text-white/50">(Shares / Equity)</span></h2>
-                <button onclick="refreshLivePrices()" class="flex items-center gap-x-2 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-sm shadow-lg">
+                <div>
+                    <div class="section-badge mb-2"><i class="fa-solid fa-chart-line"></i> EQUITY</div>
+                    <h2 class="heading-font" style="font-size:2rem; color:#F0F2F8;">Investment Portfolio</h2>
+                </div>
+                <div class="flex gap-3">
+                <button onclick="refreshLivePrices()" class="btn-primary flex items-center gap-x-2 px-5 py-2.5 text-sm" style="border-radius:8px; font-family:'DM Mono',monospace;">
                     <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
-                    <span>REFRESH LIVE PRICES + DIVIDENDS</span>
+                    <span>REFRESH PRICES</span>
                 </button>
-                <a href="https://www.google.com/finance" target="_blank" class="flex items-center gap-x-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-sm">
-                    <i class="fa-brands fa-google text-blue-400"></i> Google Finance
+                <a href="https://www.google.com/finance" target="_blank" class="flex items-center gap-x-2 border border-white/10 text-white font-semibold px-4 py-2.5 text-sm" style="background:rgba(255,255,255,0.04); border-radius:8px; font-family:'DM Mono',monospace; text-decoration:none;"
+                    onmouseenter="this.style.borderColor='rgba(240,180,41,0.3)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    <i class="fa-brands fa-google" style="color:#60a5fa;"></i> Google Finance
                 </a>
+                </div>
             </div>
-            <div class="glass rounded-3xl overflow-x-auto">
-                <table class="w-full text-left min-w-[700px]">
-                    <thead><tr class="border-b border-white/10">
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Ticker</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Qty</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Avg Cost</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">CMP <span class="text-emerald-400">(Live)</span></th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Current Value</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">P&amp;L</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Dividend <span class="text-amber-400">(Annual)</span></th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+            <div class="glass" style="border-radius:12px; overflow-x:auto;">
+                <table class="w-full text-left" style="min-width:700px;">
+                    <thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Ticker</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Qty</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Avg Cost</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">CMP <span style="color:#00C896;">(Live)</span></th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Current Value</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">P&amp;L</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Dividend <span style="color:#F0B429;">(Annual)</span></th>
+                        <th class="py-4 px-5 text-right" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Actions</th>
                     </tr></thead>
-                    <tbody id="holdings-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                    <tbody id="holdings-table-body" style="font-size:13px; font-family:'DM Mono',monospace;"></tbody>
                 </table>
             </div>
-            <p class="text-[10px] text-white/30 mt-3 text-center">Real-time prices via Yahoo Finance (NSE India) • Manual edit available</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.25); margin-top:12px; text-align:center; font-family:'DM Mono',monospace;">Real-time prices via Yahoo Finance (NSE India) • Manual edit available</p>
         </div>
 
         <!-- ===== Screen 4 – Bonds ===== -->
         <div id="screen-4" class="hidden">
-            <h2 class="heading-font text-3xl mb-6">Bonds &amp; Fixed Income</h2>
-            <div class="glass rounded-3xl overflow-x-auto">
-                <table class="w-full text-left min-w-[600px]">
-                    <thead><tr class="border-b border-white/10">
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Bond Name</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Invested</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Maturity Value</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain %</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Tenure</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Monthly Interest <span class="text-amber-400">(Coupon)</span></th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+            <div class="section-badge mb-3"><i class="fa-solid fa-handshake"></i> FIXED INCOME</div>
+            <h2 class="heading-font mb-6" style="font-size:2rem; color:#F0F2F8;">Bonds &amp; Fixed Income</h2>
+            <div class="glass" style="border-radius:12px; overflow-x:auto;">
+                <table class="w-full text-left" style="min-width:600px;">
+                    <thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Bond Name</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Invested</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Maturity Value</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Gain</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Gain %</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Tenure</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Monthly Interest <span style="color:#F0B429;">(Coupon)</span></th>
+                        <th class="py-4 px-5 text-right" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Actions</th>
                     </tr></thead>
-                    <tbody id="bonds-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                    <tbody id="bonds-table-body" style="font-size:13px; font-family:'DM Mono',monospace;"></tbody>
                 </table>
             </div>
         </div>
 
         <!-- ===== Screen 6 – Mutual Funds ===== -->
         <div id="screen-6" class="hidden">
-            <h2 class="heading-font text-3xl mb-6">Mutual Funds</h2>
-            <div class="glass rounded-3xl overflow-x-auto">
-                <table class="w-full text-left min-w-[600px]">
-                    <thead><tr class="border-b border-white/10">
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Fund Name</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Units</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">NAV</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Current Value</th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Monthly Dividend <span class="text-amber-400">(IDCW)</span></th>
-                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+            <div class="section-badge mb-3"><i class="fa-solid fa-sack-dollar"></i> MUTUAL FUNDS</div>
+            <h2 class="heading-font mb-6" style="font-size:2rem; color:#F0F2F8;">Mutual Funds</h2>
+            <div class="glass" style="border-radius:12px; overflow-x:auto;">
+                <table class="w-full text-left" style="min-width:600px;">
+                    <thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Fund Name</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Units</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">NAV</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Current Value</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Monthly Dividend <span style="color:#F0B429;">(IDCW)</span></th>
+                        <th class="py-4 px-5 text-right" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Actions</th>
                     </tr></thead>
-                    <tbody id="mf-table-body" class="text-sm divide-y divide-white/10"></tbody>
+                    <tbody id="mf-table-body" style="font-size:13px; font-family:'DM Mono',monospace;"></tbody>
                 </table>
             </div>
         </div>
 
         <!-- ===== Screen 8 – Savings ===== -->
         <div id="screen-8" class="hidden">
-            <h2 class="heading-font text-3xl mb-6">Savings &amp; Bank Account</h2>
-            <div class="glass rounded-3xl p-8 max-w-md">
+            <div class="section-badge mb-3"><i class="fa-solid fa-piggy-bank"></i> SAVINGS</div>
+            <h2 class="heading-font mb-6" style="font-size:2rem; color:#F0F2F8;">Savings &amp; Bank Account</h2>
+            <div class="glass" style="border-radius:12px; padding:32px; max-width:420px;">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <p class="uppercase text-xs tracking-widest text-white/60">Current Balance</p>
-                        <p id="savings-balance-display" class="text-5xl font-semibold mt-2">₹--</p>
+                        <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Current Balance</p>
+                        <p id="savings-balance-display" style="font-size:3rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0B429;">₹--</p>
                     </div>
-                    <i class="fa-solid fa-piggy-bank text-6xl text-amber-400"></i>
+                    <i class="fa-solid fa-piggy-bank" style="font-size:3.5rem; color:rgba(240,180,41,0.3);"></i>
                 </div>
-                <button onclick="editSavings()" class="w-full flex items-center justify-center gap-x-3 bg-white/10 hover:bg-white/20 py-5 rounded-3xl font-semibold">
+                <button onclick="editSavings()" class="w-full flex items-center justify-center gap-x-3 font-semibold py-4" style="background:rgba(240,180,41,0.08); border: 1px solid rgba(240,180,41,0.2); border-radius:10px; font-family:'DM Mono',monospace; letter-spacing:0.08em; font-size:13px; color:#F0B429; cursor:pointer;"
+                    onmouseenter="this.style.background='rgba(240,180,41,0.15)'" onmouseleave="this.style.background='rgba(240,180,41,0.08)'">
                     <i class="fa-solid fa-pen"></i> UPDATE SAVINGS BALANCE
                 </button>
             </div>
@@ -365,43 +631,44 @@
         <div id="screen-10" class="hidden">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="heading-font text-3xl">Salary &amp; Expenses</h2>
-                    <p class="text-white/50 text-sm mt-1">Track monthly income, investments &amp; what you actually spend.</p>
+                    <div class="section-badge mb-2"><i class="fa-solid fa-wallet"></i> CASHFLOW</div>
+                    <h2 class="heading-font" style="font-size:2rem; color:#F0F2F8;">Salary &amp; Expenses</h2>
+                    <p style="color:rgba(255,255,255,0.4); font-size:13px; margin-top:4px; font-family:'DM Mono',monospace;">Track monthly income, investments &amp; actual spend.</p>
                 </div>
-                <button onclick="showAddSalaryModal()" class="flex items-center gap-x-2 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-semibold px-5 py-2.5 rounded-3xl text-sm shadow-lg shadow-[#00d4aa]/30">
+                <button onclick="showAddSalaryModal()" class="btn-primary flex items-center gap-x-2 px-5 py-2.5 text-sm" style="border-radius:8px; font-family:'DM Mono',monospace;">
                     <i class="fa-solid fa-circle-plus"></i> ADD MONTH
                 </button>
             </div>
 
             <!-- KPI cards for salary section -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="glass rounded-3xl p-5 border border-white/10">
-                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Monthly Salary</p>
-                    <p id="sal-avg-salary" class="text-2xl font-semibold mt-2 kpi-value text-emerald-400">₹--</p>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Avg Monthly Salary</p>
+                    <p id="sal-avg-salary" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#00C896;">₹--</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
-                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Investment/Month</p>
-                    <p id="sal-avg-invest" class="text-2xl font-semibold mt-2 kpi-value text-[#00d4aa]">₹--</p>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Avg Investment/Month</p>
+                    <p id="sal-avg-invest" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0B429;">₹--</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
-                    <p class="uppercase text-xs tracking-widest text-white/60">Avg Expense/Month</p>
-                    <p id="sal-avg-expense" class="text-2xl font-semibold mt-2 kpi-value text-amber-400">₹--</p>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Avg Expense/Month</p>
+                    <p id="sal-avg-expense" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#FF6B35;">₹--</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
-                    <p class="uppercase text-xs tracking-widest text-white/60">Savings Rate</p>
-                    <p id="sal-savings-rate" class="text-2xl font-semibold mt-2 kpi-value text-purple-400">--%</p>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Savings Rate</p>
+                    <p id="sal-savings-rate" class="kpi-value" style="font-size:1.5rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#a78bfa;">--%</p>
                 </div>
             </div>
 
             <!-- Chart -->
-            <div class="glass rounded-3xl p-6 mb-6">
+            <div class="glass" style="border-radius:12px; padding:24px; margin-bottom:24px;">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-semibold">Monthly Salary vs Investment vs Expense</h3>
-                    <div class="flex gap-2 flex-wrap">
-                        <span class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-400 inline-block"></span>Salary</span>
-                        <span class="text-xs text-[#00d4aa] flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-[#00d4aa] inline-block"></span>Invested</span>
-                        <span class="text-xs text-amber-400 flex items-center gap-1"><span class="w-6 h-0.5 bg-amber-400 inline-block rounded"></span>Expense (line)</span>
-                        <span class="text-xs text-red-400 flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-400 inline-block"></span>Debt/EMI</span>
+                    <h3 style="font-weight:600; font-family:'Syne',sans-serif; color:#F0F2F8; font-size:15px;">Monthly Salary vs Investment vs Expense</h3>
+                    <div class="flex gap-3 flex-wrap" style="font-size:11px; font-family:'DM Mono',monospace;">
+                        <span style="color:#00C896; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#00C896; border-radius:3px; display:inline-block;"></span>Salary</span>
+                        <span style="color:#F0B429; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#F0B429; border-radius:3px; display:inline-block;"></span>Invested</span>
+                        <span style="color:#FF6B35; display:flex; align-items:center; gap:5px;"><span style="width:24px; height:2px; background:#FF6B35; display:inline-block; border-radius:2px;"></span>Expense</span>
+                        <span style="color:#FF4757; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#FF4757; border-radius:3px; display:inline-block;"></span>Debt/EMI</span>
                     </div>
                 </div>
                 <div style="height:280px; position:relative;">
@@ -410,13 +677,13 @@
             </div>
 
             <!-- Expense breakdown chart -->
-            <div class="glass rounded-3xl p-6 mb-6">
+            <div class="glass" style="border-radius:12px; padding:24px; margin-bottom:24px;">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="font-semibold">Monthly Expense Breakdown</h3>
-                        <p class="text-xs text-white/40 mt-0.5">Actual spend per month = Salary − Invested − EMI + Bank Balance</p>
+                        <h3 style="font-weight:600; font-family:'Syne',sans-serif; color:#F0F2F8; font-size:15px;">Monthly Expense Breakdown</h3>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); margin-top:4px; font-family:'DM Mono',monospace;">Actual spend per month = Salary − Invested − EMI + Bank Balance</p>
                     </div>
-                    <span class="text-xs text-amber-400 flex items-center gap-1"><span class="w-6 h-0.5 bg-amber-400 inline-block rounded"></span>Expense</span>
+                    <span style="font-size:11px; color:#FF6B35; font-family:'DM Mono',monospace; display:flex; align-items:center; gap:5px;"><span style="width:24px; height:2px; background:#FF6B35; display:inline-block; border-radius:2px;"></span>Expense</span>
                 </div>
                 <div style="height:260px; position:relative;">
                     <canvas id="expenseChart"></canvas>
@@ -424,17 +691,17 @@
             </div>
 
             <!-- Table -->
-            <div class="glass rounded-3xl overflow-x-auto">
-                <table class="w-full text-left min-w-[700px]">
-                    <thead><tr class="border-b border-white/10">
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Month</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Salary Received</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Amount Invested</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Balance Left</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Debt / EMI</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Expenses <span class="text-amber-400">(Sal − Invested − EMI + Balance)</span></th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase">Invest %</th>
-                        <th class="py-4 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
+            <div class="glass" style="border-radius:12px; overflow-x:auto;">
+                <table class="w-full text-left" style="min-width:700px;">
+                    <thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Month</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Salary Received</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Amount Invested</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Balance Left</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Debt / EMI</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Expenses <span class="text-[#F0B429]">(Sal − Invested − EMI + Balance)</span></th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Invest %</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Actions</th>
                     </tr></thead>
                     <tbody id="salary-table-body" class="text-sm divide-y divide-white/10"></tbody>
                 </table>
@@ -449,7 +716,7 @@
 
 <!-- ADD INVESTMENT -->
 <div id="add-modal" class="hidden modal-overlay" onclick="overlayClose(event,'add-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Add Investment</h3>
             <button onclick="closeModal('add-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -483,7 +750,7 @@
                     <div class="flex items-center justify-between mb-1">
                         <label class="label-sm">Current Market Price – CMP (₹)</label>
                         <button type="button" onclick="fetchCmpForAdd()" id="fetch-cmp-btn"
-                            class="text-[10px] bg-emerald-400/20 hover:bg-emerald-400/40 text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
+                            class="text-[10px] bg-[#00C896]/20 hover:bg-[#00C896]/40 text-[#00C896] border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
                             <i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH
                         </button>
                     </div>
@@ -536,7 +803,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="label-sm">Monthly Interest (₹) <span class="text-white/40">(auto-calculated)</span></label>
-                        <span id="add-bond-months-label" class="text-[10px] text-[#00d4aa]"></span>
+                        <span id="add-bond-months-label" class="text-[10px] text-[#F0B429]"></span>
                     </div>
                     <input id="add-bond-monthly-interest" type="number" step="0.01" min="0" placeholder="Auto-filled from dates above, or type manually" class="inp" oninput="bondInterestManualOverride=true">
                     <p class="text-[10px] text-amber-300/60 mt-1">= (Maturity − Invested) ÷ months. You can also type manually to override.</p>
@@ -557,7 +824,7 @@
                         <div class="flex items-center justify-between mb-1">
                             <label class="label-sm">NAV (₹)</label>
                             <button type="button" onclick="fetchNavForAdd()" 
-                                class="text-[10px] bg-emerald-400/20 hover:bg-emerald-400/40 text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
+                                class="text-[10px] bg-[#00C896]/20 hover:bg-[#00C896]/40 text-[#00C896] border border-emerald-400/30 px-2 py-0.5 rounded-xl font-semibold flex items-center gap-1">
                                 <i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH
                             </button>
                         </div>
@@ -572,7 +839,7 @@
                 </div>
             </div>
         </div>
-        <button onclick="addInvestment()" class="w-full mt-6 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+        <button onclick="addInvestment()" class="w-full mt-6 btn-primary font-bold py-4 text-sm tracking-wide' style='border-radius:10px;">
             <i class="fa-solid fa-plus mr-2"></i>ADD INVESTMENT
         </button>
     </div>
@@ -580,12 +847,12 @@
 
 <!-- BUY MORE -->
 <div id="buy-modal" class="hidden modal-overlay" onclick="overlayClose(event,'buy-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-sm" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-sm" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Buy More</h3>
             <button onclick="closeModal('buy-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <p id="buy-modal-title" class="text-emerald-400 font-semibold text-sm mb-4"></p>
+        <p id="buy-modal-title" class="text-[#00C896] font-semibold text-sm mb-4"></p>
         <div class="space-y-4">
             <div>
                 <label class="label-sm">Additional Quantity</label>
@@ -596,7 +863,7 @@
                 <input id="buy-price" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
             </div>
         </div>
-        <button onclick="confirmBuyMore()" class="w-full mt-6 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+        <button onclick="confirmBuyMore()" class="w-full mt-6 btn-primary font-bold py-4 text-sm" style="border-radius:10px;">
             <i class="fa-solid fa-plus mr-2"></i>CONFIRM BUY
         </button>
     </div>
@@ -604,7 +871,7 @@
 
 <!-- EDIT -->
 <div id="edit-modal" class="hidden modal-overlay" onclick="overlayClose(event,'edit-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Edit Entry</h3>
             <button onclick="closeModal('edit-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -659,7 +926,7 @@
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <label class="label-sm">Monthly Interest (₹) <span class="text-white/40">(auto-calculated)</span></label>
-                    <span id="edit-bond-months-label" class="text-[10px] text-[#00d4aa]"></span>
+                    <span id="edit-bond-months-label" class="text-[10px] text-[#F0B429]"></span>
                 </div>
                 <input id="edit-bond-monthly-interest" type="number" step="0.01" min="0" placeholder="Auto-filled from dates above, or type manually" class="inp" oninput="bondInterestManualOverride=true">
             </div>
@@ -685,7 +952,7 @@
                 <input id="edit-mf-monthly-div" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
             </div>
         </div>
-        <button onclick="saveEdit()" class="w-full mt-6 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+        <button onclick="saveEdit()" class="w-full mt-6 font-bold py-4 text-sm tracking-wide" style="background:rgba(240,180,41,0.15); color:#F0B429; border:1px solid rgba(240,180,41,0.3); border-radius:10px;">
             <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE CHANGES
         </button>
     </div>
@@ -693,7 +960,7 @@
 
 <!-- SAVINGS -->
 <div id="savings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'savings-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-sm" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-sm" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Update Savings</h3>
             <button onclick="closeModal('savings-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -702,7 +969,7 @@
             <label class="label-sm">New Balance (₹)</label>
             <input id="savings-input" type="number" step="0.01" placeholder="0.00" class="inp mt-1 text-2xl py-4">
         </div>
-        <button onclick="saveSavings()" class="w-full mt-6 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+        <button onclick="saveSavings()" class="w-full mt-6 font-bold py-4 text-sm tracking-wide" style="background:rgba(240,180,41,0.15); color:#F0B429; border:1px solid rgba(240,180,41,0.3); border-radius:10px;">
             <i class="fa-solid fa-floppy-disk mr-2"></i>UPDATE BALANCE
         </button>
     </div>
@@ -710,7 +977,7 @@
 
 <!-- SALARY ENTRY -->
 <div id="salary-modal" class="hidden modal-overlay" onclick="overlayClose(event,'salary-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between p-7 pb-4 shrink-0">
             <h3 class="heading-font text-2xl" id="salary-modal-title">Add Monthly Entry</h3>
             <button onclick="closeModal('salary-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -728,10 +995,10 @@
                 <label class="label-sm">Amount Invested (₹)</label>
                 <input id="sal-invested" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcExpense()">
             </div>
-            <div class="bg-white/5 rounded-2xl p-4">
+            <div class="bg-white/5 rounded-lg p-4">
                 <div class="flex justify-between items-center">
                     <span class="text-xs text-white/60 uppercase tracking-widest">Auto-calculated Expense</span>
-                    <span id="sal-expense-preview" class="text-amber-400 font-semibold text-lg">₹0.00</span>
+                    <span id="sal-expense-preview" class="text-[#F0B429] font-semibold text-lg">₹0.00</span>
                 </div>
                 <p class="text-[10px] text-white/40 mt-1">= Salary − (Invested + EMI) + Bank Balance</p>
             </div>
@@ -750,11 +1017,11 @@
                     <span class="label-sm">Previous Months — Expense Trend</span>
                     <span class="text-[10px] text-white/40">Salary · Invested · Expense · Debt · Bank Bal</span>
                 </div>
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-3" style="height:170px;position:relative;">
+                <div class="bg-white/5 border border-white/10 rounded-lg p-3" style="height:170px;position:relative;">
                     <canvas id="prevTrendChart"></canvas>
                 </div>
             </div>
-            <div id="prev-month-info" class="bg-blue-400/10 border border-blue-400/20 rounded-2xl p-3 hidden">
+            <div id="prev-month-info" class="bg-blue-400/10 border border-blue-400/20 rounded-lg p-3 hidden">
                 <p class="text-[10px] text-blue-300/70 uppercase tracking-wider mb-1">Previous Month Reference</p>
                 <div id="prev-month-details" class="text-xs text-white/70"></div>
             </div>
@@ -765,7 +1032,7 @@
         </div>
         </div><!-- /scrollable -->
         <div class="px-7 pb-7 pt-3 shrink-0">
-            <button onclick="saveSalaryEntry()" class="w-full bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+            <button onclick="saveSalaryEntry()" class="w-full btn-primary font-bold py-4 text-sm tracking-wide' style='border-radius:10px;">
                 <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE ENTRY
             </button>
         </div>
@@ -774,7 +1041,7 @@
 
 <!-- EMAIL SETTINGS MODAL -->
 <div id="email-settings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'email-settings-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between p-7 pb-4 shrink-0">
             <div>
                 <h3 class="heading-font text-2xl">Email Reminders</h3>
@@ -783,8 +1050,8 @@
             <button onclick="closeModal('email-settings-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="overflow-y-auto px-7 pb-4 space-y-4" style="scrollbar-width:thin;scrollbar-color:rgba(0,212,170,0.3) transparent;">
-            <div class="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 text-xs text-amber-300 space-y-1">
-                <p class="font-semibold text-amber-400">One-time setup (2 min)</p>
+            <div class="bg-[#F0B429]/10 border border-[#F0B429]/30 rounded-lg p-4 text-xs text-amber-300 space-y-1">
+                <p class="font-semibold text-[#F0B429]">One-time setup (2 min)</p>
                 <p>1. Sign up free at <a href="https://emailjs.com" target="_blank" class="underline">emailjs.com</a></p>
                 <p>2. Add Email Service → connect your Gmail</p>
                 <p>3. Create a Template — use the template below</p>
@@ -792,10 +1059,10 @@
             </div>
 
             <!-- Template helper -->
-            <div class="bg-white/5 rounded-2xl p-4">
+            <div class="bg-white/5 rounded-lg p-4">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-xs font-semibold text-white/70">EmailJS Template (copy this)</p>
-                    <button onclick="copyEmailTemplate()" class="text-[10px] bg-[#00d4aa]/20 text-[#00d4aa] border border-[#00d4aa]/30 px-2 py-1 rounded-xl">COPY</button>
+                    <button onclick="copyEmailTemplate()" class="text-[10px] style="background:rgba(240,180,41,0.1); color:#F0B429; border:1px solid rgba(240,180,41,0.2);" px-2 py-1 rounded-xl">COPY</button>
                 </div>
                 <pre class="text-[10px] text-white/50 whitespace-pre-wrap leading-relaxed" id="email-template-preview">Subject: 📊 QUALTRIM – Time to log {{month_name}}!
 
@@ -845,10 +1112,10 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
                 </select>
             </div>
             <div class="flex gap-3">
-                <button onclick="saveEmailSettings()" class="flex-1 bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-3 rounded-2xl text-sm">
+                <button onclick="saveEmailSettings()" class="flex-1 btn-primary font-bold py-3 rounded-lg text-sm">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> SAVE SETTINGS
                 </button>
-                <button onclick="sendTestEmail()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl text-sm border border-white/20">
+                <button onclick="sendTestEmail()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-lg text-sm border border-white/20">
                     <i class="fa-solid fa-paper-plane mr-1"></i> SEND TEST
                 </button>
             </div>
@@ -859,27 +1126,27 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 
 <!-- REMINDER -->
 <div id="reminder-modal" class="hidden modal-overlay" onclick="overlayClose(event,'reminder-modal')">
-    <div class="bg-[#0d2d40] border border-white/20 rounded-3xl p-7 w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Monthly Review</h3>
             <button onclick="closeModal('reminder-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 mb-5">
+        <div class="bg-[#F0B429]/10 border border-[#F0B429]/30 rounded-lg p-4 mb-5">
             <div class="flex items-start gap-x-3">
-                <i class="fa-solid fa-bell text-amber-400 mt-0.5 text-lg"></i>
+                <i class="fa-solid fa-bell text-[#F0B429] mt-0.5 text-lg"></i>
                 <div>
-                    <p class="font-semibold text-amber-400">Monthly Portfolio Reminder</p>
+                    <p class="font-semibold text-[#F0B429]">Monthly Portfolio Reminder</p>
                     <p class="text-sm text-white/70 mt-1">Time for your monthly review! Update prices, check performance, and backup your data.</p>
                 </div>
             </div>
         </div>
         <ul class="space-y-2 text-sm text-white/70 mb-5">
-            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Refresh live stock prices</li>
-            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Review bonds &amp; mutual funds</li>
-            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Update savings balance</li>
-            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>Export CSV backup</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-[#00C896] shrink-0"></i>Refresh live stock prices</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-[#00C896] shrink-0"></i>Review bonds &amp; mutual funds</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-[#00C896] shrink-0"></i>Update savings balance</li>
+            <li class="flex items-center gap-x-2"><i class="fa-solid fa-circle-check text-[#00C896] shrink-0"></i>Export CSV backup</li>
         </ul>
-        <button onclick="dismissReminder()" class="w-full bg-[#00d4aa] hover:bg-[#00e6b8] text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
+        <button onclick="dismissReminder()" class="w-full btn-primary font-bold py-4 text-sm tracking-wide' style='border-radius:10px;">
             <i class="fa-solid fa-check mr-2"></i>GOT IT – REMIND ME NEXT MONTH
         </button>
     </div>
@@ -887,17 +1154,17 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 
 <!-- ===================== KPI DRAWER MODAL ===================== -->
 <div id="kpi-drawer" class="hidden modal-overlay" onclick="if(event.target===this)closeModal('kpi-drawer')">
-    <div class="bg-[#0b2235] border border-white/15 rounded-3xl w-full max-w-lg shadow-2xl" onclick="event.stopPropagation()" style="max-height:88vh;display:flex;flex-direction:column;">
+    <div class="bg-[#0D1320] border border-white/15 rounded-xl w-full max-w-lg shadow-2xl" onclick="event.stopPropagation()" style="max-height:88vh;display:flex;flex-direction:column;">
         <!-- Header -->
         <div class="flex items-center justify-between px-7 pt-6 pb-4 shrink-0 border-b border-white/10">
             <div class="flex items-center gap-3">
-                <div id="kpi-drawer-icon" class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl"></div>
+                <div id="kpi-drawer-icon" class="w-10 h-10 rounded-lg flex items-center justify-center text-xl"></div>
                 <div>
                     <p class="heading-font text-xl font-semibold" id="kpi-drawer-title">Details</p>
                     <p class="text-xs text-white/40" id="kpi-drawer-subtitle"></p>
                 </div>
             </div>
-            <button onclick="closeModal('kpi-drawer')" class="text-white/40 hover:text-white text-xl w-9 h-9 flex items-center justify-center rounded-2xl hover:bg-white/10"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeModal('kpi-drawer')" class="text-white/40 hover:text-white text-xl w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <!-- Body -->
         <div id="kpi-drawer-body" class="overflow-y-auto px-7 py-5 space-y-3 flex-1" style="scrollbar-width:thin;scrollbar-color:rgba(0,212,170,0.3) transparent;"></div>
@@ -907,8 +1174,8 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 <!-- ===================== SHARED STYLES (Tailwind can't handle dynamic class strings in JS) ===================== -->
 <style>
     .inp { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.7rem 1rem; color: #fff; outline: none; font-size: 0.875rem; }
-    .inp:focus { border-color: #00d4aa; }
-    .inp option { background: #0d2d40; }
+    .inp:focus { border-color: rgba(240,180,41,0.5) !important; box-shadow: 0 0 0 3px rgba(240,180,41,0.08) !important; outline: none !important; }
+    .inp option { background: #0D1320; }
     .label-sm { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); }
     /* KPI Drawer */
     .kpi-row { display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.9rem; border-radius:1rem; background:rgba(255,255,255,0.05); }
@@ -1103,28 +1370,28 @@ function renderHoldings() {
         const avg   = h.avgCost || h.cmp;
         const pnl   = (h.cmp - avg) * h.qty;
         const pnlPct= avg ? ((h.cmp - avg) / avg * 100) : 0;
-        const col   = pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+        const col   = pnl >= 0 ? 'text-[#00C896]' : 'text-red-400';
         const sign  = pnl >= 0 ? '+' : '';
         // Dividend display
         const divYield = h.dividendYield || 0;
         const divAmt   = h.annualDividend || 0;
         const divTotal = +(divAmt * h.qty).toFixed(2);
         const divHtml  = (divAmt > 0)
-            ? `<div class="text-amber-400 font-medium">₹${divAmt.toFixed(2)}/sh <span class="text-xs opacity-70">(${divYield.toFixed(2)}% yield)</span></div><div class="text-[10px] text-amber-300/60">₹${divTotal.toLocaleString('en-IN')} total/yr</div>`
+            ? `<div class="text-[#F0B429] font-medium">₹${divAmt.toFixed(2)}/sh <span class="text-xs opacity-70">(${divYield.toFixed(2)}% yield)</span></div><div class="text-[10px] text-amber-300/60">₹${divTotal.toLocaleString('en-IN')} total/yr</div>`
             : `<span class="text-white/30 text-xs">No dividend (last 12m)</span>`;
         html += `
-        <tr class="hover:bg-white/5">
+        <tr class="hover:bg-[rgba(240,180,41,0.04)]">
             <td class="px-6 py-5 font-bold">${h.ticker}</td>
             <td class="px-6 py-5">${h.qty}</td>
             <td class="px-6 py-5 text-white/60">₹${(+avg).toFixed(2)}</td>
-            <td class="px-6 py-5 text-emerald-400 font-medium">₹${(+h.cmp).toFixed(2)}</td>
+            <td class="px-6 py-5 text-[#00C896] font-medium">₹${(+h.cmp).toFixed(2)}</td>
             <td class="px-6 py-5 font-medium">₹${(+h.currentValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-5 ${col}">${sign}₹${Math.abs(pnl).toFixed(2)} <span class="text-xs opacity-70">(${sign}${pnlPct.toFixed(1)}%)</span></td>
             <td class="px-6 py-5">${divHtml}</td>
             <td class="px-6 py-5 text-right">
                 <div class="flex items-center gap-2 justify-end">
-                    <button onclick="buyMore('share',${i})" class="flex items-center gap-1 bg-emerald-400 hover:bg-emerald-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-plus text-[10px]"></i> BUY MORE</button>
-                    <button onclick="showEditModal('share',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="buyMore('share',${i})" class="flex items-center gap-1 bg-[#00C896] hover:bg-[#00b885] text-[#080C14] text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-plus text-[10px]"></i> BUY MORE</button>
+                    <button onclick="showEditModal('share',${i})" class="flex items-center gap-1 bg-[#F0B429] hover:bg-amber-500 text-[#080C14] text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
                     <button onclick="deleteHolding(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </td>
@@ -1141,7 +1408,7 @@ function renderBonds() {
         const monthly = b.monthlyInterest || 0;
         const annual  = +(monthly * 12).toFixed(2);
         const interestHtml = monthly > 0
-            ? `<div class="text-amber-400 font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
+            ? `<div class="text-[#F0B429] font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
             : `<span class="text-white/30 text-xs">Cumulative / FD</span>`;
         // Tenure display
         let tenureHtml = '<span class="text-white/30 text-xs">—</span>';
@@ -1152,17 +1419,17 @@ function renderBonds() {
             tenureHtml = `<div class="text-xs">${months}m</div><div class="text-[10px] text-white/40">${fmtDate(b.startDate)} → ${fmtDate(b.endDate)}</div>`;
         }
         html += `
-        <tr class="hover:bg-white/5">
+        <tr class="hover:bg-[rgba(240,180,41,0.04)]">
             <td class="px-6 py-5 font-semibold">${b.name}</td>
             <td class="px-6 py-5">₹${(+b.invested).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-5 font-medium">₹${(+b.maturityValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
-            <td class="px-6 py-5 text-emerald-400">+₹${gain}</td>
-            <td class="px-6 py-5 text-emerald-400">+${(+b.gainPct).toFixed(2)}%</td>
+            <td class="px-6 py-5 text-[#00C896]">+₹${gain}</td>
+            <td class="px-6 py-5 text-[#00C896]">+${(+b.gainPct).toFixed(2)}%</td>
             <td class="px-6 py-5">${tenureHtml}</td>
             <td class="px-6 py-5">${interestHtml}</td>
             <td class="px-6 py-5 text-right">
                 <div class="flex items-center gap-2 justify-end">
-                    <button onclick="showEditModal('bond',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="showEditModal('bond',${i})" class="flex items-center gap-1 bg-[#F0B429] hover:bg-amber-500 text-[#080C14] text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
                     <button onclick="deleteBond(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </td>
@@ -1178,18 +1445,18 @@ function renderMutualFunds() {
         const monthly = m.monthlyDiv || 0;
         const annual  = +(monthly * 12).toFixed(2);
         const divHtml = monthly > 0
-            ? `<div class="text-amber-400 font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
+            ? `<div class="text-[#F0B429] font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
             : `<span class="text-white/30 text-xs">Growth plan</span>`;
         html += `
-        <tr class="hover:bg-white/5">
+        <tr class="hover:bg-[rgba(240,180,41,0.04)]">
             <td class="px-6 py-5 font-semibold">${m.name}</td>
             <td class="px-6 py-5">${(+m.units).toFixed(3)}</td>
-            <td class="px-6 py-5 text-emerald-400">₹${(+m.nav).toFixed(2)}</td>
+            <td class="px-6 py-5 text-[#00C896]">₹${(+m.nav).toFixed(2)}</td>
             <td class="px-6 py-5 font-medium">₹${(+m.currentValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-5">${divHtml}</td>
             <td class="px-6 py-5 text-right">
                 <div class="flex items-center gap-2 justify-end">
-                    <button onclick="showEditModal('mf',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="showEditModal('mf',${i})" class="flex items-center gap-1 bg-[#F0B429] hover:bg-amber-500 text-[#080C14] text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
                     <button onclick="deleteMF(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </td>
@@ -1864,7 +2131,7 @@ async function fetchCmpForAdd() {
         const { price, name, source } = await fetchStockPrice(ticker);
         document.getElementById('add-cmp').value = price.toFixed(2);
         status.textContent = `✅ ${name ? name + ' — ' : ''}₹${price.toFixed(2)} via ${source}`;
-        status.className   = 'text-[10px] text-emerald-400 mt-1';
+        status.className   = 'text-[10px] text-[#00C896] mt-1';
         const avgEl = document.getElementById('add-avgcost');
         if (!avgEl.value) avgEl.value = price.toFixed(2);
 
@@ -1879,13 +2146,13 @@ async function fetchCmpForAdd() {
                 divEl.value   = divData.annualAmount.toFixed(2);
                 yieldEl.value = ((divData.annualAmount / price) * 100).toFixed(2);
                 divStatus.textContent = `✅ Dividend: ₹${divData.annualAmount.toFixed(2)}/sh/yr`;
-                divStatus.className   = 'text-[10px] text-amber-400';
+                divStatus.className   = 'text-[10px] text-[#F0B429]';
             } else if (divData.yieldDecimal > 0) {
                 const annualAmt = +(divData.yieldDecimal * price).toFixed(2);
                 divEl.value   = annualAmt.toFixed(2);
                 yieldEl.value = (divData.yieldDecimal * 100).toFixed(2);
                 divStatus.textContent = `✅ Dividend: ₹${annualAmt.toFixed(2)}/sh (${(divData.yieldDecimal*100).toFixed(2)}% yield)`;
-                divStatus.className   = 'text-[10px] text-amber-400';
+                divStatus.className   = 'text-[10px] text-[#F0B429]';
             } else {
                 divEl.value   = '';
                 yieldEl.value = '';
@@ -2029,13 +2296,13 @@ async function fetchNavForAdd() {
 
         const picker = document.createElement('div');
         picker.id = 'nav-scheme-picker';
-        picker.className = 'mt-2 rounded-2xl border border-white/20 bg-[#0a1f35] text-[11px] overflow-y-auto';
+        picker.className = 'mt-2 rounded-lg border border-white/20 bg-[#0a1f35] text-[11px] overflow-y-auto';
         picker.style.maxHeight = '160px';
 
         top.forEach((scheme, i) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'w-full text-left px-3 py-2 hover:bg-[#00d4aa]/20 text-white/80 border-b border-white/10 last:border-b-0 transition-colors';
+            btn.className = 'w-full text-left px-3 py-2 hover:bg-[#F0B429]/20 text-white/80 border-b border-white/10 last:border-b-0 transition-colors';
             btn.textContent = scheme.schemeName;
             btn.onclick = async () => {
                 picker.remove();
@@ -2056,7 +2323,7 @@ async function fetchNavForAdd() {
 
     } catch {
         status.textContent = '⚠️ Could not auto-fetch NAV. Enter manually (try a shorter/exact fund name).';
-        status.className   = 'text-[10px] text-amber-400 mt-1';
+        status.className   = 'text-[10px] text-[#F0B429] mt-1';
     }
 }
 
@@ -2070,11 +2337,11 @@ async function applyNavFromScheme(schemeCode, schemeName, statusEl) {
         if (!isNaN(nav) && nav > 0) {
             document.getElementById('add-nav').value = nav.toFixed(4);
             statusEl.textContent = `✅ ${schemeName.slice(0, 55)} — NAV ₹${nav.toFixed(4)}`;
-            statusEl.className   = 'text-[10px] text-emerald-400 mt-1';
+            statusEl.className   = 'text-[10px] text-[#00C896] mt-1';
         } else throw new Error('NAV parse fail');
     } catch {
         statusEl.textContent = '⚠️ Could not fetch NAV for this scheme. Enter manually.';
-        statusEl.className   = 'text-[10px] text-amber-400 mt-1';
+        statusEl.className   = 'text-[10px] text-[#F0B429] mt-1';
     }
 }
 
@@ -2342,9 +2609,9 @@ function showPrevMonthInfo() {
     detail.innerHTML = `
         <div class="grid grid-cols-2 gap-1">
             <span class="text-white/50">Last month:</span><span class="font-semibold text-white">${prev.month}</span>
-            <span class="text-white/50">Salary:</span><span class="text-emerald-400">₹${prev.salary.toLocaleString('en-IN')}</span>
-            <span class="text-white/50">Invested:</span><span class="text-[#00d4aa]">₹${prev.invested.toLocaleString('en-IN')}</span>
-            <span class="text-white/50">Expense:</span><span class="text-amber-400">₹${prev.expense.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Salary:</span><span class="text-[#00C896]">₹${prev.salary.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Invested:</span><span class="text-[#F0B429]">₹${prev.invested.toLocaleString('en-IN')}</span>
+            <span class="text-white/50">Expense:</span><span class="text-[#F0B429]">₹${prev.expense.toLocaleString('en-IN')}</span>
             <span class="text-white/50">Debt/EMI:</span><span class="text-red-400">₹${(prev.debt||0).toLocaleString('en-IN')}</span>
             <span class="text-white/50">Bank bal:</span><span class="text-blue-400">₹${(prev.balance||0).toLocaleString('en-IN')}</span>
         </div>`;
@@ -2366,23 +2633,23 @@ function showPrevMonthInfo() {
                 {
                     label: 'Salary',
                     data: entries.map(e => e.salary),
-                    borderColor: '#34d399', backgroundColor: 'transparent',
+                    borderColor: '#00C896', backgroundColor: 'transparent',
                     tension: 0.4, borderWidth: 2, pointRadius: 3,
-                    pointBackgroundColor: '#34d399'
+                    pointBackgroundColor: '#00C896'
                 },
                 {
                     label: 'Invested',
                     data: entries.map(e => e.invested),
-                    borderColor: '#00d4aa', backgroundColor: 'transparent',
+                    borderColor: '#F0B429', backgroundColor: 'rgba(240,180,41,0.06)',
                     tension: 0.4, borderWidth: 2, pointRadius: 3,
-                    pointBackgroundColor: '#00d4aa'
+                    pointBackgroundColor: '#F0B429'
                 },
                 {
                     label: 'Expense',
                     data: entries.map(e => e.expense),
-                    borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.08)',
+                    borderColor: '#F0B429', backgroundColor: 'rgba(251,191,36,0.08)',
                     fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4,
-                    pointBackgroundColor: '#fbbf24', pointBorderColor: '#0d2d40', pointBorderWidth: 2
+                    pointBackgroundColor: '#F0B429', pointBorderColor: '#0D1320', pointBorderWidth: 2
                 },
                 {
                     label: 'Debt/EMI',
@@ -2486,19 +2753,19 @@ function renderSalaryTable() {
     let html = '';
     entries.forEach((e, i) => {
         const invPct = e.salary > 0 ? ((e.invested/e.salary)*100).toFixed(1) : '0.0';
-        const investCol = parseFloat(invPct) >= 20 ? 'text-emerald-400' : parseFloat(invPct) >= 10 ? 'text-amber-400' : 'text-red-400';
+        const investCol = parseFloat(invPct) >= 20 ? 'text-[#00C896]' : parseFloat(invPct) >= 10 ? 'text-[#F0B429]' : 'text-red-400';
         html += `
-        <tr class="hover:bg-white/5">
+        <tr class="hover:bg-[rgba(240,180,41,0.04)]">
             <td class="px-6 py-4 font-semibold">${e.month}</td>
-            <td class="px-6 py-4 text-emerald-400 font-medium">₹${e.salary.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 text-[#00d4aa]">₹${e.invested.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-[#00C896] font-medium">₹${e.salary.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-[#F0B429]">₹${e.invested.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 text-white/70">${e.balance > 0 ? '₹'+e.balance.toLocaleString('en-IN',{minimumFractionDigits:2}) : '<span class="text-white/30">—</span>'}</td>
             <td class="px-6 py-4 text-red-400">${(e.debt||0) > 0 ? '₹'+(e.debt).toLocaleString('en-IN',{minimumFractionDigits:2}) : '<span class="text-white/30">—</span>'}</td>
-            <td class="px-6 py-4 text-amber-400 font-medium">₹${e.expense.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 text-[#F0B429] font-medium">₹${e.expense.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 ${investCol} font-semibold">${invPct}%</td>
             <td class="px-6 py-4 text-right">
                 <div class="flex items-center gap-2 justify-end">
-                    <button onclick="editSalaryEntry(${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
+                    <button onclick="editSalaryEntry(${i})" class="flex items-center gap-1 bg-[#F0B429] hover:bg-amber-500 text-[#080C14] text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
                     <button onclick="deleteSalaryEntry(${i})" class="text-red-400 hover:text-red-300 text-lg px-1"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </td>
@@ -2532,24 +2799,24 @@ function initSalaryChart() {
         data: {
             labels: entries.map(e=>e.month),
             datasets: [
-                { label: 'Salary',       data: entries.map(e=>e.salary),   backgroundColor: 'rgba(52,211,153,0.75)', borderRadius: 6, type:'bar' },
-                { label: 'Invested',     data: entries.map(e=>e.invested),  backgroundColor: 'rgba(0,212,170,0.75)',  borderRadius: 6, type:'bar' },
+                { label: 'Salary',       data: entries.map(e=>e.salary),   backgroundColor: 'rgba(0,200,150,0.65)', borderRadius: 4, type:'bar' },
+                { label: 'Invested',     data: entries.map(e=>e.invested),  backgroundColor: 'rgba(240,180,41,0.7)',  borderRadius: 4, type:'bar' },
                 {
                     label: 'Expense',
                     data: entries.map(e=>e.expense),
                     type: 'line',
-                    borderColor: '#fbbf24',
-                    backgroundColor: 'rgba(251,191,36,0.08)',
+                    borderColor: '#FF6B35',
+                    backgroundColor: 'rgba(255,107,53,0.06)',
                     fill: true,
                     tension: 0.4,
-                    borderWidth: 2.5,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#fbbf24',
-                    pointBorderColor: '#0a2540',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#FF6B35',
+                    pointBorderColor: '#080C14',
                     pointBorderWidth: 2,
                     order: 0   // draw on top of bars
                 },
-                { label: 'Debt/EMI',     data: entries.map(e=>e.debt||0),   backgroundColor: 'rgba(239,68,68,0.7)',   borderRadius: 6, type:'bar' }
+                { label: 'Debt/EMI',     data: entries.map(e=>e.debt||0),   backgroundColor: 'rgba(255,71,87,0.6)',   borderRadius: 4, type:'bar' }
             ]
         },
         options: {
@@ -2590,18 +2857,18 @@ function initExpenseChart() {
             datasets: [{
                 label: 'Expense',
                 data: entries.map(e => e.expense),
-                borderColor: '#fbbf24',
-                backgroundColor: 'rgba(251,191,36,0.10)',
+                borderColor: '#FF6B35',
+                backgroundColor: 'rgba(255,107,53,0.08)',
                 fill: true,
                 tension: 0.4,
-                borderWidth: 2.5,
+                borderWidth: 2,
                 pointRadius: 5,
                 pointBackgroundColor: entries.map(e => {
                     const maxExp = Math.max(...financeData.salaryEntries.map(x => x.expense), 1);
                     const r = e.expense / maxExp;
-                    return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+                    return `rgba(${Math.round(255)},${Math.round(107-r*60)},${Math.round(53-r*30)},1)`;
                 }),
-                pointBorderColor: '#0a2540',
+                pointBorderColor: '#080C14',
                 pointBorderWidth: 2,
                 pointHoverRadius: 7
             }]
@@ -2645,7 +2912,7 @@ function _expenseColours(entries) {
     });
     const border = entries.map(e => {
         const r = e.expense / maxExp;
-        return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+        return `rgba(255,${Math.round(107-r*60)},${Math.round(53-r*30)},1)`;
     });
     return { bg, border };
 }
@@ -2658,7 +2925,7 @@ function refreshExpenseChart() {
     expenseChart.data.datasets[0].data = entries.map(e => e.expense);
     expenseChart.data.datasets[0].pointBackgroundColor = entries.map(e => {
         const r = e.expense / maxExp;
-        return `rgba(${Math.round(251-r*60)},${Math.round(191-r*140)},${Math.round(36-r*36)},1)`;
+        return `rgba(255,${Math.round(107-r*60)},${Math.round(53-r*30)},1)`;
     });
     expenseChart.update('none');
 }
@@ -2682,7 +2949,7 @@ function updateOverview() {
     const pnlPctEl = document.getElementById('kpi-pnl-pct');
     if (pnlEl) {
         pnlEl.textContent = (pnl >= 0 ? '+₹' : '-₹') + Math.abs(pnl).toLocaleString('en-IN', {maximumFractionDigits:0});
-        pnlEl.className = 'text-2xl font-semibold mt-2 kpi-value ' + (pnl >= 0 ? 'text-emerald-400' : 'text-red-400');
+        pnlEl.className = 'kpi-value' ; pnlEl.style.fontSize='1.5rem'; pnlEl.style.fontWeight='700'; pnlEl.style.marginTop='8px'; pnlEl.style.fontFamily='Syne,sans-serif'; pnlEl.style.color = pnl >= 0 ? '#00C896' : '#FF4757'; // orig : 'text-red-400');
     }
     if (pnlPctEl) pnlPctEl.textContent = (pnl >= 0 ? '▲ ' : '▼ ') + Math.abs(pnlPct) + '% unrealised';
 
@@ -2713,7 +2980,7 @@ function updateOverview() {
     const srEl = document.getElementById('kpi-savings-rate-ov');
     if (srEl) {
         srEl.textContent = savRate + '%';
-        srEl.className = 'text-2xl font-semibold mt-2 kpi-value ' + (savRate >= 20 ? 'text-emerald-400' : savRate >= 10 ? 'text-amber-400' : 'text-red-400');
+        srEl.className = 'text-2xl font-semibold mt-2 kpi-value ' + (savRate >= 20 ? 'text-[#00C896]' : savRate >= 10 ? 'text-[#F0B429]' : 'text-red-400');
     }
 
     // Breakdown bars
@@ -2738,7 +3005,7 @@ function updateOverview() {
         } else {
             topEl.innerHTML = sorted.map(h => {
                 const pnl = h.cmp && h.avgCost ? (((h.cmp-h.avgCost)/h.avgCost)*100).toFixed(1) : null;
-                const col = pnl === null ? '' : parseFloat(pnl) >= 0 ? 'text-emerald-400' : 'text-red-400';
+                const col = pnl === null ? '' : parseFloat(pnl) >= 0 ? 'text-[#00C896]' : 'text-red-400';
                 return `<div class="flex justify-between items-center py-1 border-b border-white/5">
                     <span class="font-semibold">${h.ticker}</span>
                     <div class="text-right">
@@ -2760,10 +3027,10 @@ function updateOverview() {
             const invPct = last.salary > 0 ? ((last.invested/last.salary)*100).toFixed(1) : '0';
             const expPct = last.salary > 0 ? ((last.expense/last.salary)*100).toFixed(1) : '0';
             lmEl.innerHTML = `
-                <div class="text-[#00d4aa] font-semibold mb-1">${last.month}</div>
-                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Salary</span><span class="text-emerald-400 font-medium">₹${last.salary.toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
-                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Invested</span><span class="text-[#00d4aa] font-medium">₹${last.invested.toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${invPct}%)</span></span></div>
-                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Expense</span><span class="text-amber-400 font-medium">₹${(last.expense||0).toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${expPct}%)</span></span></div>
+                <div class="text-[#F0B429] font-semibold mb-1">${last.month}</div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Salary</span><span class="text-[#00C896] font-medium">₹${last.salary.toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Invested</span><span class="text-[#F0B429] font-medium">₹${last.invested.toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${invPct}%)</span></span></div>
+                <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Expense</span><span class="text-[#F0B429] font-medium">₹${(last.expense||0).toLocaleString('en-IN',{maximumFractionDigits:0})} <span class="text-[10px] text-white/40">(${expPct}%)</span></span></div>
                 <div class="flex justify-between py-1 border-b border-white/5"><span class="text-white/50">Debt/EMI</span><span class="text-red-400 font-medium">₹${(last.debt||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
                 <div class="flex justify-between py-1"><span class="text-white/50">Bank Bal</span><span class="text-blue-400 font-medium">₹${(last.balance||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</span></div>
                 ${last.notes ? `<div class="mt-2 text-[10px] text-white/30 italic">"${last.notes}"</div>` : ''}
@@ -2781,7 +3048,7 @@ function _fmt(n, dec=0) {
 function _pct(val, total) {
     return total > 0 ? ((val/total)*100).toFixed(1) + '%' : '0%';
 }
-function _row(label, value, color='text-white', sub='', barPct=null, barColor='#00d4aa') {
+function _row(label, value, color='text-white', sub='', barPct=null, barColor='#F0B429') {
     const barHtml = barPct !== null
         ? `<div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${Math.min(100,barPct).toFixed(1)}%;background:${barColor};"></div></div>`
         : '';
@@ -2794,7 +3061,7 @@ function _row(label, value, color='text-white', sub='', barPct=null, barColor='#
         <span class="text-sm font-semibold ml-4 shrink-0 ${color}">${value}</span>
     </div>`;
 }
-function _totalRow(label, value, color='text-[#00d4aa]') {
+function _totalRow(label, value, color='text-[#F0B429]') {
     return `<div class="kpi-total-row"><span class="text-sm font-semibold text-white/80">${label}</span><span class="text-base font-bold ${color}">${value}</span></div>`;
 }
 function _sectionTitle(t) { return `<p class="kpi-section-title">${t}</p>`; }
@@ -2813,7 +3080,7 @@ function openKpiDrawer(type) {
     // ── NET WORTH ──────────────────────────────────────────────
     if (type === 'networth') {
         titleText = 'Net Worth Breakdown';
-        iconHtml  = '<i class="fa-solid fa-wallet text-[#00d4aa]"></i>';
+        iconHtml  = '<i class="fa-solid fa-wallet text-[#F0B429]"></i>';
         iconBg    = 'background:rgba(0,212,170,0.15)';
         const eq   = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
         const bond = fd.bonds.reduce((s,b)=>s+(b.maturityValue||0),0);
@@ -2822,8 +3089,8 @@ function openKpiDrawer(type) {
         const total = fd.netWorth || 1;
         subText = `Total: ${_fmt(total)}`;
         html += _sectionTitle('Portfolio Assets');
-        html += _row('Equity Holdings',   _fmt(eq),   'text-[#00d4aa]', `${_pct(eq,total)} of net worth`,   (eq/total)*100, '#00d4aa');
-        html += _row('Bonds & Fixed Dep.', _fmt(bond), 'text-amber-400', `${_pct(bond,total)} of net worth`, (bond/total)*100, '#f59e0b');
+        html += _row('Equity Holdings',   _fmt(eq),   'text-[#F0B429]', `${_pct(eq,total)} of net worth`,   (eq/total)*100, '#F0B429');
+        html += _row('Bonds & Fixed Dep.', _fmt(bond), 'text-[#F0B429]', `${_pct(bond,total)} of net worth`, (bond/total)*100, '#F0B429');
         html += _row('Mutual Funds',       _fmt(mf),   'text-purple-400',`${_pct(mf,total)} of net worth`,  (mf/total)*100, '#a78bfa');
         html += _sectionTitle('Liquid Assets');
         html += _row('Bank Savings',       _fmt(sav),  'text-blue-400',  `${_pct(sav,total)} of net worth`,  (sav/total)*100, '#60a5fa');
@@ -2833,7 +3100,7 @@ function openKpiDrawer(type) {
     // ── TOTAL PORTFOLIO ────────────────────────────────────────
     else if (type === 'portfolio') {
         titleText = 'Portfolio Breakdown';
-        iconHtml  = '<i class="fa-solid fa-chart-pie text-[#00d4aa]"></i>';
+        iconHtml  = '<i class="fa-solid fa-chart-pie text-[#F0B429]"></i>';
         iconBg    = 'background:rgba(0,212,170,0.15)';
         const eq   = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
         const bond = fd.bonds.reduce((s,b)=>s+(b.maturityValue||0),0);
@@ -2846,14 +3113,14 @@ function openKpiDrawer(type) {
             const sorted = [...fd.holdings].sort((a,b)=>(b.currentValue||0)-(a.currentValue||0));
             sorted.forEach(h => {
                 const pnl = h.avgCost ? ((h.cmp - h.avgCost)/h.avgCost*100).toFixed(1) : null;
-                const col = pnl === null ? 'text-white' : parseFloat(pnl)>=0 ? 'text-emerald-400' : 'text-red-400';
+                const col = pnl === null ? 'text-white' : parseFloat(pnl)>=0 ? 'text-[#00C896]' : 'text-red-400';
                 const pnlStr = pnl !== null ? ` (${parseFloat(pnl)>=0?'▲':'▼'}${Math.abs(pnl)}%)` : '';
-                html += _row(h.ticker, _fmt(h.currentValue||0), col, `${h.qty} shares · CMP ₹${h.cmp}${pnlStr}`, ((h.currentValue||0)/total)*100, '#00d4aa');
+                html += _row(h.ticker, _fmt(h.currentValue||0), col, `${h.qty} shares · CMP ₹${h.cmp}${pnlStr}`, ((h.currentValue||0)/total)*100, '#F0B429');
             });
         }
         if (fd.bonds.length) {
             html += _sectionTitle(`Bonds & Fixed Deposits (${fd.bonds.length})`);
-            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.maturityValue||0), 'text-amber-400', `Invested ${_fmt(b.invested)} · +${b.gainPct}% gain`, ((b.maturityValue||0)/total)*100, '#f59e0b'));
+            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.maturityValue||0), 'text-[#F0B429]', `Invested ${_fmt(b.invested)} · +${b.gainPct}% gain`, ((b.maturityValue||0)/total)*100, '#F0B429'));
         }
         if ((fd.mutualFunds||[]).length) {
             html += _sectionTitle(`Mutual Funds (${fd.mutualFunds.length})`);
@@ -2865,7 +3132,7 @@ function openKpiDrawer(type) {
     // ── BANK SAVINGS ───────────────────────────────────────────
     else if (type === 'savings') {
         titleText = 'Bank & Liquid Savings';
-        iconHtml  = '<i class="fa-solid fa-piggy-bank text-amber-400"></i>';
+        iconHtml  = '<i class="fa-solid fa-piggy-bank text-[#F0B429]"></i>';
         iconBg    = 'background:rgba(251,191,36,0.15)';
         const sav  = fd.savings || 0;
         subText = 'Your liquid balance overview';
@@ -2879,7 +3146,7 @@ function openKpiDrawer(type) {
         if (sal.length >= 3) {
             const avgExp = sal.slice(-3).reduce((s,e)=>s+(e.expense||0),0)/3;
             const months = avgExp > 0 ? (sav/avgExp).toFixed(1) : '∞';
-            html += _row('Emergency Fund Cover', `${months} months`, 'text-emerald-400', `Based on avg monthly expense ${_fmt(avgExp)}`);
+            html += _row('Emergency Fund Cover', `${months} months`, 'text-[#00C896]', `Based on avg monthly expense ${_fmt(avgExp)}`);
         }
         html += _totalRow('Liquid Balance', _fmt(sav), 'text-blue-400');
     }
@@ -2887,7 +3154,7 @@ function openKpiDrawer(type) {
     // ── ANNUAL DIVIDENDS ───────────────────────────────────────
     else if (type === 'dividends') {
         titleText = 'Dividend Breakdown';
-        iconHtml  = '<i class="fa-solid fa-coins text-amber-400"></i>';
+        iconHtml  = '<i class="fa-solid fa-coins text-[#F0B429]"></i>';
         iconBg    = 'background:rgba(251,191,36,0.15)';
         const totalAnnual = fd.dividends || 0;
         subText = `${_fmt(totalAnnual)}/year · ${_fmt(totalAnnual/12)}/month passive`;
@@ -2902,10 +3169,10 @@ function openKpiDrawer(type) {
                 html += _row(
                     h.ticker,
                     _fmt(annual),
-                    'text-amber-400',
+                    'text-[#F0B429]',
                     `₹${h.annualDividend}/sh × ${h.qty} shares · ${h.dividendYield?.toFixed(2)||'?'}% yield · ${_fmt(monthly)}/mo`,
                     totalAnnual > 0 ? (annual/totalAnnual)*100 : 0,
-                    '#f59e0b'
+                    '#F0B429'
                 );
             });
             const noDiv = fd.holdings.filter(h => !(h.annualDividend > 0));
@@ -2925,10 +3192,10 @@ function openKpiDrawer(type) {
                     html += _row(
                         b.name.length > 32 ? b.name.slice(0,32)+'…' : b.name,
                         _fmt(annual),
-                        'text-amber-400',
+                        'text-[#F0B429]',
                         `₹${b.monthlyInterest.toFixed(2)}/month × 12 = ${_fmt(annual)}/yr`,
                         totalAnnual > 0 ? (annual/totalAnnual)*100 : 0,
-                        '#f59e0b'
+                        '#F0B429'
                     );
                 });
             } else {
@@ -2962,17 +3229,17 @@ function openKpiDrawer(type) {
         const mfDivTotal = (fd.mutualFunds||[]).reduce((s,m)=>s+((m.monthlyDiv||0)*12),0);
         const bondIntTotal = fd.bonds.reduce((s,b)=>s+((b.monthlyInterest||0)*12),0);
         html += _sectionTitle('Summary');
-        if (stockDiv > 0)    html += _row('Equity Dividends (annual)',       _fmt(stockDiv),     'text-amber-400');
-        if (bondIntTotal > 0) html += _row('Bond / FD Interest (annual)',    _fmt(bondIntTotal), 'text-amber-400');
+        if (stockDiv > 0)    html += _row('Equity Dividends (annual)',       _fmt(stockDiv),     'text-[#F0B429]');
+        if (bondIntTotal > 0) html += _row('Bond / FD Interest (annual)',    _fmt(bondIntTotal), 'text-[#F0B429]');
         if (mfDivTotal > 0)  html += _row('MF Dividends (annual)',           _fmt(mfDivTotal),   'text-purple-400');
         html += _totalRow('Total Annual Dividends', _fmt(totalAnnual));
-        if (totalAnnual > 0) html += _row('Monthly Passive Income', _fmt(totalAnnual/12), 'text-emerald-400', 'Average if distributed evenly each month');
+        if (totalAnnual > 0) html += _row('Monthly Passive Income', _fmt(totalAnnual/12), 'text-[#00C896]', 'Average if distributed evenly each month');
     }
 
     // ── TOTAL INVESTED ─────────────────────────────────────────
     else if (type === 'invested') {
         titleText = 'Cost Basis Breakdown';
-        iconHtml  = '<i class="fa-solid fa-receipt text-[#00d4aa]"></i>';
+        iconHtml  = '<i class="fa-solid fa-receipt text-[#F0B429]"></i>';
         iconBg    = 'background:rgba(0,212,170,0.15)';
         const cost = fd.holdings.reduce((s,h)=>s+(h.qty*(h.avgCost||h.cmp||0)),0);
         const bondInv = fd.bonds.reduce((s,b)=>s+(b.invested||0),0);
@@ -2985,27 +3252,27 @@ function openKpiDrawer(type) {
                 const c = +(h.qty*(h.avgCost||h.cmp||0)).toFixed(2);
                 const cur = h.currentValue||0;
                 const pnl = cur - c;
-                const col = pnl>=0?'text-emerald-400':'text-red-400';
+                const col = pnl>=0?'text-[#00C896]':'text-red-400';
                 html += _row(h.ticker, _fmt(c), 'text-white', `${h.qty} × ₹${h.avgCost||h.cmp} avg · P&L: <span class="${col}">${pnl>=0?'+':''}${_fmt(Math.abs(pnl))}</span>`);
             });
         } else html += `<div class="kpi-row"><span class="text-white/40 text-sm">No equity holdings.</span></div>`;
         if (fd.bonds.length) {
             html += _sectionTitle(`Bonds & Fixed Deposits (${fd.bonds.length})`);
-            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.invested||0), 'text-amber-400', `Maturity: ${_fmt(b.maturityValue||0)} · +${b.gainPct}%`));
+            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.invested||0), 'text-[#F0B429]', `Maturity: ${_fmt(b.maturityValue||0)} · +${b.gainPct}%`));
         }
         html += _totalRow('Total Cost Basis', _fmt(totalInv));
         const cur = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
         const pnl = cur - cost;
         html += `<div class="kpi-row" style="background:${pnl>=0?'rgba(52,211,153,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${pnl>=0?'rgba(52,211,153,0.25)':'rgba(239,68,68,0.25)'}">
             <span class="text-sm text-white/80">Equity Unrealised P&L</span>
-            <span class="text-sm font-bold ${pnl>=0?'text-emerald-400':'text-red-400'}">${pnl>=0?'+':''}${_fmt(Math.abs(pnl))} (${cost>0?((pnl/cost)*100).toFixed(2):0}%)</span>
+            <span class="text-sm font-bold ${pnl>=0?'text-[#00C896]':'text-red-400'}">${pnl>=0?'+':''}${_fmt(Math.abs(pnl))} (${cost>0?((pnl/cost)*100).toFixed(2):0}%)</span>
         </div>`;
     }
 
     // ── UNREALISED P&L ─────────────────────────────────────────
     else if (type === 'pnl') {
         titleText = 'Unrealised P&L Detail';
-        iconHtml  = '<i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>';
+        iconHtml  = '<i class="fa-solid fa-arrow-trend-up text-[#00C896]"></i>';
         iconBg    = 'background:rgba(52,211,153,0.15)';
         subText   = 'Per-stock unrealised gain/loss';
         const sorted = [...fd.holdings].sort((a,b)=>{
@@ -3023,13 +3290,13 @@ function openKpiDrawer(type) {
                 const pct  = cost > 0 ? ((pnl/cost)*100).toFixed(2) : '0';
                 totalPnl  += pnl;
                 totalCost += cost;
-                const col  = pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+                const col  = pnl >= 0 ? 'text-[#00C896]' : 'text-red-400';
                 html += _row(h.ticker, `${pnl>=0?'+':''}${_fmt(Math.abs(pnl))}`, col, `CMP ₹${h.cmp} vs avg ₹${h.avgCost||h.cmp} · ${pnl>=0?'▲':'▼'}${Math.abs(pct)}%`);
             });
         } else {
             html += `<div class="kpi-row"><span class="text-white/40 text-sm">No holdings yet.</span></div>`;
         }
-        const pnlCol = totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+        const pnlCol = totalPnl >= 0 ? 'text-[#00C896]' : 'text-red-400';
         html += _totalRow('Total Unrealised P&L', `${totalPnl>=0?'+':''}${_fmt(Math.abs(totalPnl))}`, pnlCol);
         if (totalCost > 0) html += _row('Overall Return', ((totalPnl/totalCost)*100).toFixed(2)+'%', pnlCol, 'On total cost basis');
     }
@@ -3037,7 +3304,7 @@ function openKpiDrawer(type) {
     // ── SALARY ─────────────────────────────────────────────────
     else if (type === 'salary') {
         titleText = 'Salary History';
-        iconHtml  = '<i class="fa-solid fa-briefcase text-emerald-400"></i>';
+        iconHtml  = '<i class="fa-solid fa-briefcase text-[#00C896]"></i>';
         iconBg    = 'background:rgba(52,211,153,0.15)';
         const sal  = fd.salaryEntries || [];
         subText    = `${sal.length} month${sal.length!==1?'s':''} of data`;
@@ -3049,11 +3316,11 @@ function openKpiDrawer(type) {
             const maxSal = Math.max(...recent.map(e=>e.salary), 1);
             recent.forEach(e => {
                 const invPct = e.salary>0?((e.invested/e.salary)*100).toFixed(1):0;
-                html += _row(e.month, _fmt(e.salary), 'text-emerald-400', `Invested ${_fmt(e.invested)} (${invPct}%) · Expense ${_fmt(e.expense||0)}`, (e.salary/maxSal)*100, '#34d399');
+                html += _row(e.month, _fmt(e.salary), 'text-[#00C896]', `Invested ${_fmt(e.invested)} (${invPct}%) · Expense ${_fmt(e.expense||0)}`, (e.salary/maxSal)*100, '#00C896');
             });
             const last3 = sal.slice(-3);
             const avg = last3.reduce((s,e)=>s+e.salary,0)/last3.length;
-            html += _totalRow('3-Month Average', _fmt(avg), 'text-emerald-400');
+            html += _totalRow('3-Month Average', _fmt(avg), 'text-[#00C896]');
         }
     }
 
@@ -3071,16 +3338,16 @@ function openKpiDrawer(type) {
             const recent = sal.slice(-6).reverse();
             recent.forEach(e => {
                 const rate = e.salary>0?((e.invested/e.salary)*100).toFixed(1):0;
-                const col  = rate>=20?'text-emerald-400':rate>=10?'text-amber-400':'text-red-400';
+                const col  = rate>=20?'text-[#00C896]':rate>=10?'text-[#F0B429]':'text-red-400';
                 const msg  = rate>=20?'🌟 Excellent':rate>=10?'👍 Good':'⚠️ Low';
-                html += _row(e.month, rate+'%', col, `${msg} · Invested ${_fmt(e.invested)} of ${_fmt(e.salary)}`, parseFloat(rate), rate>=20?'#34d399':rate>=10?'#f59e0b':'#ef4444');
+                html += _row(e.month, rate+'%', col, `${msg} · Invested ${_fmt(e.invested)} of ${_fmt(e.salary)}`, parseFloat(rate), rate>=20?'#00C896':rate>=10?'#F0B429':'#ef4444');
             });
             const last3 = sal.slice(-3);
             const avgRate = last3.reduce((s,e)=>s+(e.salary>0?(e.invested/e.salary*100):0),0)/last3.length;
-            html += _totalRow('3-Month Avg Rate', avgRate.toFixed(1)+'%', avgRate>=20?'text-emerald-400':avgRate>=10?'text-amber-400':'text-red-400');
+            html += _totalRow('3-Month Avg Rate', avgRate.toFixed(1)+'%', avgRate>=20?'text-[#00C896]':avgRate>=10?'text-[#F0B429]':'text-red-400');
             html += _sectionTitle('Benchmarks');
-            html += _row('🌟 Excellent', '≥ 20%',  'text-emerald-400');
-            html += _row('👍 Good',      '10–20%', 'text-amber-400');
+            html += _row('🌟 Excellent', '≥ 20%',  'text-[#00C896]');
+            html += _row('👍 Good',      '10–20%', 'text-[#F0B429]');
             html += _row('⚠️ Low',       '< 10%',  'text-red-400');
         }
     }
@@ -3124,7 +3391,7 @@ function saveEmailSettings() {
     localStorage.setItem('qualtrim_ejs_settings', JSON.stringify(EJS_KEYS));
     const st = document.getElementById('ejs-status');
     st.textContent = '✅ Settings saved!';
-    st.className = 'text-xs text-center text-emerald-400';
+    st.className = 'text-xs text-center text-[#00C896]';
     st.classList.remove('hidden');
     setTimeout(() => closeModal('email-settings-modal'), 1200);
 }
@@ -3159,7 +3426,7 @@ async function sendTestEmail() {
     st.classList.remove('hidden');
     if (!EJS_KEYS.publicKey || !EJS_KEYS.serviceId || !EJS_KEYS.templateId || !EJS_KEYS.toEmail) {
         st.textContent = '⚠️ Fill in all fields first, then Save Settings.';
-        st.className = 'text-xs text-center text-amber-400';
+        st.className = 'text-xs text-center text-[#F0B429]';
         return;
     }
     st.textContent = '⏳ Sending test email…';
@@ -3168,7 +3435,7 @@ async function sendTestEmail() {
         await emailjs.init(EJS_KEYS.publicKey);
         await emailjs.send(EJS_KEYS.serviceId, EJS_KEYS.templateId, _buildEmailParams());
         st.textContent = '✅ Test email sent! Check your inbox.';
-        st.className = 'text-xs text-center text-emerald-400';
+        st.className = 'text-xs text-center text-[#00C896]';
         showToast('✅ Test email sent to ' + EJS_KEYS.toEmail);
     } catch(e) {
         st.textContent = '❌ Failed: ' + (e?.text || e?.message || 'Check your EmailJS keys.');
@@ -3239,17 +3506,17 @@ function updateMarketStatus(now) {
 
     if (isOpen) {
         txt.textContent = 'NSE OPEN';
-        txt.className = 'font-medium text-emerald-400 hidden sm:inline';
-        pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+        txt.className = 'font-medium text-[#00C896] hidden sm:inline';
+        pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-[#00C896] opacity-75';
         core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-emerald-500';
     } else {
         // Check pre-open (9:00–9:15)
         const isPreOpen = isWeekday && mins >= 540 && mins < 555;
         if (isPreOpen) {
             txt.textContent = 'Pre-open';
-            txt.className = 'font-medium text-amber-400 hidden sm:inline';
-            pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75';
-            core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-amber-400';
+            txt.className = 'font-medium text-[#F0B429] hidden sm:inline';
+            pulse.className = 'live-dot absolute inline-flex h-full w-full rounded-full bg-[#F0B429] opacity-75';
+            core.className  = 'relative inline-flex rounded-full h-3 w-3 bg-[#F0B429]';
         } else {
             txt.textContent = 'NSE CLOSED';
             txt.className = 'font-medium text-red-400 hidden sm:inline';
@@ -3300,28 +3567,28 @@ window.addEventListener('load', async () => {
                 {
                     label: '📈 Your Portfolio',
                     data: [...bd.portfolio],
-                    borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.08)',
-                    fill: true, tension: 0.35, borderWidth: 3,
-                    pointRadius: 5, pointBackgroundColor: '#00d4aa', pointBorderColor: '#0a2540', pointBorderWidth: 2
+                    borderColor: '#F0B429', backgroundColor: 'rgba(240,180,41,0.06)',
+                    fill: true, tension: 0.35, borderWidth: 2.5,
+                    pointRadius: 4, pointBackgroundColor: '#F0B429', pointBorderColor: '#080C14', pointBorderWidth: 2
                 },
                 {
                     label: 'Nifty 50',
                     data: [...(bd.nifty50 || bd.niftybees || [])],
-                    borderColor: '#f59e0b', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 2, pointRadius: 3,
+                    borderColor: '#60a5fa', backgroundColor: 'transparent',
+                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
                     borderDash: [4,3]
                 },
                 {
                     label: 'Sensex',
                     data: [...(bd.sensex || [])],
                     borderColor: '#a78bfa', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 2, pointRadius: 3,
+                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
                     borderDash: [4,3]
                 },
                 {
                     label: 'Gold',
                     data: [...(bd.gold || [])],
-                    borderColor: '#fcd34d', backgroundColor: 'transparent',
+                    borderColor: '#FF6B35', backgroundColor: 'transparent',
                     tension: 0.35, borderWidth: 1.5, pointRadius: 3,
                     borderDash: [2,4]
                 },
@@ -3349,7 +3616,7 @@ window.addEventListener('load', async () => {
             labels: ['Equity','Cash','Bonds & MF','Savings'],
             datasets: [{
                 data: [0,0,0,0],
-                backgroundColor:['#00d4aa','rgba(255,255,255,0.2)','#00a88a','#f59e0b'],
+                backgroundColor:['#F0B429','rgba(255,255,255,0.12)','#60a5fa','#00C896'],
                 borderColor: 'transparent', hoverOffset: 6
             }]
         },
