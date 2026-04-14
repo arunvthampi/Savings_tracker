@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUALTRIM – Arun's Finance OS</title>
+    <title>QUALTRIM – Personal Finance OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -42,7 +42,7 @@
         <div class="flex items-center gap-x-3 shrink-0">
             <div class="w-9 h-9 bg-[#00d4aa] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold text-2xl">Q</div>
             <h1 class="heading-font text-2xl tracking-[-1px]">QUALTRIM</h1>
-            <span class="text-xs font-medium bg-[#00d4aa]/10 text-[#00d4aa] px-3 py-1 rounded-3xl border border-[#00d4aa]/30">ARUN v2.9c</span>
+            <span class="text-xs font-medium bg-[#00d4aa]/10 text-[#00d4aa] px-3 py-1 rounded-3xl border border-[#00d4aa]/30">v2.9</span>
         </div>
         <div class="flex items-center gap-x-5 flex-wrap justify-end">
             <div class="flex items-center gap-x-2 text-sm">
@@ -56,7 +56,7 @@
             </div>
             <div class="flex items-center gap-x-2 text-right">
                 <div>
-                    <div class="font-semibold text-sm">Arun Finance OS</div>
+                    <div class="font-semibold text-sm" id="header-username">Finance OS</div>
                     <div class="text-xs text-white/60">Net Worth ₹<span id="header-networth">--</span></div>
                 </div>
                 <div class="w-8 h-8 bg-gradient-to-br from-[#00d4aa] to-[#00a88a] rounded-2xl flex items-center justify-center text-[#0a2540] font-bold">A</div>
@@ -115,7 +115,7 @@
         <div id="screen-0">
             <div class="flex items-start justify-between mb-5 flex-wrap gap-3">
                 <div>
-                    <h2 class="heading-font text-4xl mb-1" id="greeting-text">Good morning, Arun</h2>
+                    <h2 class="heading-font text-4xl mb-1" id="greeting-text">Good morning</h2>
                     <p class="text-white/50 text-sm">Your money is working harder than yesterday. Here's the live snapshot.</p>
                 </div>
                 <button onclick="showEmailSettingsModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2.5 rounded-3xl text-xs">
@@ -125,66 +125,79 @@
 
             <!-- Row 1: 4 primary KPIs -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('networth')">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="uppercase text-xs tracking-widest text-white/60">Net Worth</p>
                             <p id="kpi-networth" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
                             <p id="kpi-networth-change" class="text-xs mt-1 text-white/40">--</p>
                         </div>
-                        <i class="fa-solid fa-wallet text-3xl text-[#00d4aa]"></i>
+                        <div class="flex flex-col items-end gap-2">
+                            <i class="fa-solid fa-wallet text-3xl text-[#00d4aa]"></i>
+                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                        </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('portfolio')">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="uppercase text-xs tracking-widest text-white/60">Total Portfolio</p>
                             <p id="kpi-portfolio" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
                             <p id="kpi-portfolio-sub" class="text-xs mt-1 text-white/40">Equity + Bonds + MF</p>
                         </div>
-                        <i class="fa-solid fa-chart-pie text-3xl text-[#00d4aa]"></i>
+                        <div class="flex flex-col items-end gap-2">
+                            <i class="fa-solid fa-chart-pie text-3xl text-[#00d4aa]"></i>
+                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                        </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('savings')">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="uppercase text-xs tracking-widest text-white/60">Bank Savings</p>
                             <p id="kpi-savings" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
                             <p class="text-xs mt-1 text-white/40">Liquid balance</p>
                         </div>
-                        <i class="fa-solid fa-piggy-bank text-3xl text-amber-400"></i>
+                        <div class="flex flex-col items-end gap-2">
+                            <i class="fa-solid fa-piggy-bank text-3xl text-amber-400"></i>
+                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                        </div>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 card-hover border border-white/10">
+                <div class="glass rounded-3xl p-5 card-hover border border-white/10 cursor-pointer select-none" onclick="openKpiDrawer('dividends')">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="uppercase text-xs tracking-widest text-white/60">Annual Dividends</p>
                             <p id="kpi-dividends" class="text-3xl font-semibold mt-2 kpi-value">₹--</p>
                             <p id="kpi-div-monthly" class="text-xs mt-1 text-white/40">--/month passive</p>
+                            <p id="kpi-div-breakdown" class="text-[10px] mt-0.5 text-amber-400/60">--</p>
                         </div>
-                        <i class="fa-solid fa-coins text-3xl text-amber-400"></i>
+                        <div class="flex flex-col items-end gap-2">
+                            <i class="fa-solid fa-coins text-3xl text-amber-400"></i>
+                            <span class="text-[10px] text-white/30 flex items-center gap-1"><i class="fa-solid fa-chevron-down text-[8px]"></i>details</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Row 2: 4 secondary KPIs -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="glass rounded-3xl p-5 border border-white/10">
+                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('invested')">
                     <p class="uppercase text-xs tracking-widest text-white/50">Total Invested</p>
                     <p id="kpi-invested" class="text-2xl font-semibold mt-2 text-[#00d4aa] kpi-value">₹--</p>
-                    <p class="text-xs mt-1 text-white/40">Cost basis</p>
+                    <p class="text-xs mt-1 text-white/40">Cost basis <span class="text-white/20 ml-1">· tap for breakdown</span></p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
+                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('pnl')">
                     <p class="uppercase text-xs tracking-widest text-white/50">Unrealised P&amp;L</p>
                     <p id="kpi-pnl" class="text-2xl font-semibold mt-2 kpi-value">₹--</p>
                     <p id="kpi-pnl-pct" class="text-xs mt-1 text-white/40">--</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
+                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('salary')">
                     <p class="uppercase text-xs tracking-widest text-white/50">Avg Monthly Salary</p>
                     <p id="kpi-avg-salary" class="text-2xl font-semibold mt-2 text-emerald-400 kpi-value">₹--</p>
                     <p class="text-xs mt-1 text-white/40">Last 3 months avg</p>
                 </div>
-                <div class="glass rounded-3xl p-5 border border-white/10">
+                <div class="glass rounded-3xl p-5 border border-white/10 cursor-pointer card-hover select-none" onclick="openKpiDrawer('savingsrate')">
                     <p class="uppercase text-xs tracking-widest text-white/50">Savings Rate</p>
                     <p id="kpi-savings-rate-ov" class="text-2xl font-semibold mt-2 text-purple-400 kpi-value">--%</p>
                     <p class="text-xs mt-1 text-white/40">Invested ÷ Salary</p>
@@ -247,6 +260,11 @@
                     </div>
                     <div style="height:260px; position:relative;">
                         <canvas id="growthChart"></canvas>
+                        <div id="growth-chart-empty" style="display:flex;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(10,37,64,0.7);border-radius:1rem;backdrop-filter:blur(2px);">
+                            <i class="fa-solid fa-chart-line text-3xl text-white/30"></i>
+                            <p class="text-white/60 text-sm font-medium">No snapshots yet</p>
+                            <p class="text-white/40 text-xs text-center px-6">Click <strong class="text-[#00d4aa]">+ Add Snapshot</strong> to record today as your baseline, then add another next month to see % growth vs Nifty, Sensex &amp; Gold.</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-4 glass rounded-3xl p-6">
@@ -299,6 +317,8 @@
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Maturity Value</th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain</th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Gain %</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Tenure</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Monthly Interest <span class="text-amber-400">(Coupon)</span></th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
                     </tr></thead>
                     <tbody id="bonds-table-body" class="text-sm divide-y divide-white/10"></tbody>
@@ -316,6 +336,7 @@
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Units</th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">NAV</th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Current Value</th>
+                        <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase">Monthly Dividend <span class="text-amber-400">(IDCW)</span></th>
                         <th class="py-5 px-6 font-medium text-white/60 text-xs uppercase text-right">Actions</th>
                     </tr></thead>
                     <tbody id="mf-table-body" class="text-sm divide-y divide-white/10"></tbody>
@@ -469,6 +490,22 @@
                     <input id="add-cmp" type="number" step="0.01" min="0" placeholder="Click AUTO-FETCH or type manually" class="inp">
                     <p id="fetch-cmp-status" class="text-[10px] text-white/40 mt-1 hidden"></p>
                 </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="label-sm">Annual Dividend per Share (₹) <span class="text-white/40">(optional)</span></label>
+                        <span id="add-div-status" class="text-[10px] text-white/40 hidden"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <input id="add-annual-dividend" type="number" step="0.01" min="0" placeholder="e.g. 26.40" class="inp" oninput="const c=parseFloat(document.getElementById('add-cmp').value);const d=parseFloat(this.value);document.getElementById('add-dividend-yield').value=(c>0&&d>0)?((d/c)*100).toFixed(2):'';">
+                            <p class="text-[10px] text-white/40 mt-1">₹/share/year — auto-fetched with CMP</p>
+                        </div>
+                        <div>
+                            <input id="add-dividend-yield" type="number" step="0.01" min="0" placeholder="Yield %" class="inp" readonly style="opacity:0.6;cursor:default">
+                            <p class="text-[10px] text-white/40 mt-1">Yield % (auto)</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Bond fields -->
             <div id="bond-fields" class="hidden space-y-3">
@@ -479,12 +516,30 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="label-sm">Amount Invested (₹)</label>
-                        <input id="add-invested" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+                        <input id="add-invested" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcBondInterest('add')">
                     </div>
                     <div>
                         <label class="label-sm">Maturity Value (₹)</label>
-                        <input id="add-maturity" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
+                        <input id="add-maturity" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1" oninput="autoCalcBondInterest('add')">
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-sm">Start Date</label>
+                        <input id="add-bond-start" type="date" class="inp mt-1" oninput="autoCalcBondInterest('add')">
+                    </div>
+                    <div>
+                        <label class="label-sm">Maturity Date</label>
+                        <input id="add-bond-end" type="date" class="inp mt-1" oninput="autoCalcBondInterest('add')">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="label-sm">Monthly Interest (₹) <span class="text-white/40">(auto-calculated)</span></label>
+                        <span id="add-bond-months-label" class="text-[10px] text-[#00d4aa]"></span>
+                    </div>
+                    <input id="add-bond-monthly-interest" type="number" step="0.01" min="0" placeholder="Auto-filled from dates above, or type manually" class="inp" oninput="bondInterestManualOverride=true">
+                    <p class="text-[10px] text-amber-300/60 mt-1">= (Maturity − Invested) ÷ months. You can also type manually to override.</p>
                 </div>
             </div>
             <!-- MF fields -->
@@ -509,6 +564,11 @@
                         <input id="add-nav" type="number" step="0.01" min="0" placeholder="Click AUTO-FETCH or type manually" class="inp">
                         <p id="fetch-nav-status" class="text-[10px] text-white/40 mt-1 hidden"></p>
                     </div>
+                </div>
+                <div>
+                    <label class="label-sm">Monthly Dividend (₹) <span class="text-white/40">(optional — for IDCW/dividend plans)</span></label>
+                    <input id="add-mf-monthly-div" type="number" step="0.01" min="0" placeholder="0.00 — leave blank if growth plan" class="inp mt-1">
+                    <p class="text-[10px] text-amber-300/60 mt-1">Enter the monthly dividend amount you receive from this fund (IDCW plans). This adds to your Annual Dividends KPI.</p>
                 </div>
             </div>
         </div>
@@ -579,12 +639,29 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="label-sm">Invested (₹)</label>
-                    <input id="edit-invested" type="number" step="0.01" class="inp mt-1">
+                    <input id="edit-invested" type="number" step="0.01" class="inp mt-1" oninput="autoCalcBondInterest('edit')">
                 </div>
                 <div>
                     <label class="label-sm">Maturity (₹)</label>
-                    <input id="edit-maturity" type="number" step="0.01" class="inp mt-1">
+                    <input id="edit-maturity" type="number" step="0.01" class="inp mt-1" oninput="autoCalcBondInterest('edit')">
                 </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="label-sm">Start Date</label>
+                    <input id="edit-bond-start" type="date" class="inp mt-1" oninput="autoCalcBondInterest('edit')">
+                </div>
+                <div>
+                    <label class="label-sm">Maturity Date</label>
+                    <input id="edit-bond-end" type="date" class="inp mt-1" oninput="autoCalcBondInterest('edit')">
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="label-sm">Monthly Interest (₹) <span class="text-white/40">(auto-calculated)</span></label>
+                    <span id="edit-bond-months-label" class="text-[10px] text-[#00d4aa]"></span>
+                </div>
+                <input id="edit-bond-monthly-interest" type="number" step="0.01" min="0" placeholder="Auto-filled from dates above, or type manually" class="inp" oninput="bondInterestManualOverride=true">
             </div>
         </div>
         <!-- MF edit -->
@@ -602,6 +679,10 @@
                     <label class="label-sm">NAV (₹)</label>
                     <input id="edit-nav" type="number" step="0.01" class="inp mt-1">
                 </div>
+            </div>
+            <div>
+                <label class="label-sm">Monthly Dividend (₹) <span class="text-white/40">(IDCW/dividend plans)</span></label>
+                <input id="edit-mf-monthly-div" type="number" step="0.01" min="0" placeholder="0.00" class="inp mt-1">
             </div>
         </div>
         <button onclick="saveEdit()" class="w-full mt-6 bg-amber-400 hover:bg-amber-500 text-[#0a2540] font-bold py-4 rounded-3xl text-sm tracking-wide">
@@ -718,7 +799,7 @@
                 </div>
                 <pre class="text-[10px] text-white/50 whitespace-pre-wrap leading-relaxed" id="email-template-preview">Subject: 📊 QUALTRIM – Time to log {{month_name}}!
 
-Hi Arun,
+Hi {{name}},
 
 It's the end of the month — time to update your Finance OS!
 
@@ -737,7 +818,7 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 
             <div>
                 <label class="label-sm">Your Email Address</label>
-                <input id="ejs-to-email" type="email" placeholder="arun@gmail.com" class="inp mt-1">
+                <input id="ejs-to-email" type="email" placeholder="your@email.com" class="inp mt-1">
             </div>
             <div>
                 <label class="label-sm">EmailJS Public Key</label>
@@ -804,12 +885,38 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
     </div>
 </div>
 
+<!-- ===================== KPI DRAWER MODAL ===================== -->
+<div id="kpi-drawer" class="hidden modal-overlay" onclick="if(event.target===this)closeModal('kpi-drawer')">
+    <div class="bg-[#0b2235] border border-white/15 rounded-3xl w-full max-w-lg shadow-2xl" onclick="event.stopPropagation()" style="max-height:88vh;display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-7 pt-6 pb-4 shrink-0 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div id="kpi-drawer-icon" class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl"></div>
+                <div>
+                    <p class="heading-font text-xl font-semibold" id="kpi-drawer-title">Details</p>
+                    <p class="text-xs text-white/40" id="kpi-drawer-subtitle"></p>
+                </div>
+            </div>
+            <button onclick="closeModal('kpi-drawer')" class="text-white/40 hover:text-white text-xl w-9 h-9 flex items-center justify-center rounded-2xl hover:bg-white/10"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <!-- Body -->
+        <div id="kpi-drawer-body" class="overflow-y-auto px-7 py-5 space-y-3 flex-1" style="scrollbar-width:thin;scrollbar-color:rgba(0,212,170,0.3) transparent;"></div>
+    </div>
+</div>
+
 <!-- ===================== SHARED STYLES (Tailwind can't handle dynamic class strings in JS) ===================== -->
 <style>
     .inp { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.7rem 1rem; color: #fff; outline: none; font-size: 0.875rem; }
     .inp:focus { border-color: #00d4aa; }
     .inp option { background: #0d2d40; }
     .label-sm { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); }
+    /* KPI Drawer */
+    .kpi-row { display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.9rem; border-radius:1rem; background:rgba(255,255,255,0.05); }
+    .kpi-row:hover { background:rgba(255,255,255,0.09); }
+    .kpi-section-title { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.35); padding: 0.25rem 0 0.15rem; }
+    .kpi-total-row { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 0.9rem; border-radius:1rem; background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.25); }
+    .kpi-bar-wrap { height:4px; background:rgba(255,255,255,0.1); border-radius:9999px; margin-top:5px; }
+    .kpi-bar-fill { height:4px; border-radius:9999px; }
 </style>
 
 <script>
@@ -817,32 +924,22 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 //  DATA MODEL
 // ================================================================
 let financeData = {
-    netWorth: 12054.46,
-    totalPortfolio: 11954.46,
-    cash: 100,
-    savings: 12500.00,
-    dividends: 409.76,
-    holdings: [
-        { ticker: "SUZLON",   qty: 93, avgCost: 45.00, cmp: 45.59, currentValue: 4239.87 },
-        { ticker: "NIFTYBEES",qty: 11, avgCost: 265.00,cmp: 272.15,currentValue: 2993.65 }
-    ],
-    bonds: [
-        { name: "Muthoot Fincorp NCD", invested: 1996,    maturityValue: 2430,   gainPct: 21.74 },
-        { name: "Muthoot MCred",       invested: 1956.82, maturityValue: 2290.94, gainPct: 17.07 }
-    ],
-    mutualFunds: [],
-    // benchmarkData stores historical monthly snapshots.
-    // updateKPIs updates LAST point in-place. addMonthlySnapshot adds a new point.
+    netWorth:        0,
+    totalPortfolio:  0,
+    equityPortfolio: 0,
+    cash:            0,
+    savings:         0,
+    dividends:       0,
+    holdings:        [],
+    bonds:           [],
+    mutualFunds:     [],
     benchmarkData: {
-        dates:    ["Jan","Feb","Mar","Apr"],
-        portfolio:[0, 2000, 4000, 7233.52],
-        nifty50:  [0, 1950, 3900, 7085.08],
-        sensex:   [0, 1900, 3750, 6800.00],
-        gold:     [0, 1600, 3200, 5800.00],
-        fd:       [0, 1750, 3507, 5270.00]
+        dates: [], portfolio: [], nifty50: [], sensex: [], gold: [],
+        basePortfolio: null, baseNifty: null, baseSensex: null, baseGold: null
     },
     lastReminderMonth: null,
-    salaryEntries: []
+    salaryEntries: [],
+    userName: ''
 };
 
 let currentScreen   = 0;
@@ -875,15 +972,18 @@ function loadFromLocalStorage() {
         if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
         if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
         if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
-            financeData.benchmarkData = { dates:["Jan","Feb","Mar","Apr"], portfolio:[0,2000,4000,7233.52], nifty50:[0,1950,3900,7085.08], sensex:[0,1900,3750,6800.00], gold:[0,1600,3200,5800.00], fd:[0,1750,3507,5270.00] };
+            financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
         }
         // Migrate old niftybees key to nifty50
         if (financeData.benchmarkData.niftybees && !financeData.benchmarkData.nifty50) {
             financeData.benchmarkData.nifty50  = financeData.benchmarkData.niftybees;
-            financeData.benchmarkData.sensex   = financeData.benchmarkData.niftybees.map(v=>v*0.96);
-            financeData.benchmarkData.gold     = financeData.benchmarkData.niftybees.map(v=>v*0.82);
-            financeData.benchmarkData.fd       = financeData.benchmarkData.niftybees.map(v=>v*0.74);
             delete financeData.benchmarkData.niftybees;
+        }
+        // Migrate old absolute ₹ data → reset to % structure (values > 100 means old ₹ data)
+        const bd = financeData.benchmarkData;
+        const hasOldAbsoluteData = bd.portfolio && bd.portfolio.some(v => v > 100);
+        if (hasOldAbsoluteData || bd.basePortfolio === undefined) {
+            financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
         }
     } catch(e) {}
 }
@@ -913,7 +1013,7 @@ async function idbGet(key) {
 
 function generateCsv() {
     const ts = new Date().toLocaleString('en-IN');
-    let c = `QUALTRIM Finance Export — Arun\nGenerated:,${ts}\n\n`;
+    let c = `QUALTRIM Finance Export — ${financeData.userName || "User"}\nGenerated:,${ts}\n\n`;
     c += `TYPE,TICKER / NAME,QTY / UNITS / INVESTED,AVG COST / NAV / MATURITY,CMP / CURRENT VALUE,P&L\n`;
     financeData.holdings.forEach(h => {
         const avg = h.avgCost || h.cmp;
@@ -953,7 +1053,7 @@ async function linkCsvFile() {
     }
     try {
         const handle = await window.showSaveFilePicker({
-            suggestedName: `QUALTRIM_Arun_${new Date().toISOString().slice(0,10)}.csv`,
+            suggestedName: `QUALTRIM_${financeData.userName || "Export"}_${new Date().toISOString().slice(0,10)}.csv`,
             types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
         });
         csvFileHandle = handle;
@@ -989,7 +1089,7 @@ function exportToExcel() {
     const blob = new Blob([generateCsv()], { type: 'text/csv' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = `QUALTRIM_Arun_${new Date().toISOString().slice(0,10)}.csv`;
+    a.href = url; a.download = `QUALTRIM_${financeData.userName || "Export"}_${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
     showToast('✅ CSV downloaded! Open in Excel or Google Sheets.');
 }
@@ -1008,9 +1108,10 @@ function renderHoldings() {
         // Dividend display
         const divYield = h.dividendYield || 0;
         const divAmt   = h.annualDividend || 0;
-        const divHtml  = h.isDividendStock
-            ? `<div class="text-amber-400 font-medium">₹${divAmt.toFixed(2)}/sh <span class="text-xs opacity-70">(${divYield.toFixed(2)}%)</span></div><div class="text-[10px] text-amber-300/60">Annual per share</div>`
-            : `<span class="text-white/30 text-xs">Non-dividend</span>`;
+        const divTotal = +(divAmt * h.qty).toFixed(2);
+        const divHtml  = (divAmt > 0)
+            ? `<div class="text-amber-400 font-medium">₹${divAmt.toFixed(2)}/sh <span class="text-xs opacity-70">(${divYield.toFixed(2)}% yield)</span></div><div class="text-[10px] text-amber-300/60">₹${divTotal.toLocaleString('en-IN')} total/yr</div>`
+            : `<span class="text-white/30 text-xs">No dividend (last 12m)</span>`;
         html += `
         <tr class="hover:bg-white/5">
             <td class="px-6 py-5 font-bold">${h.ticker}</td>
@@ -1037,6 +1138,19 @@ function renderBonds() {
     let html = '';
     financeData.bonds.forEach((b, i) => {
         const gain = (b.maturityValue - b.invested).toFixed(2);
+        const monthly = b.monthlyInterest || 0;
+        const annual  = +(monthly * 12).toFixed(2);
+        const interestHtml = monthly > 0
+            ? `<div class="text-amber-400 font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
+            : `<span class="text-white/30 text-xs">Cumulative / FD</span>`;
+        // Tenure display
+        let tenureHtml = '<span class="text-white/30 text-xs">—</span>';
+        if (b.startDate && b.endDate) {
+            const s = new Date(b.startDate), e = new Date(b.endDate);
+            const months = (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth());
+            const fmtDate = d => new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'});
+            tenureHtml = `<div class="text-xs">${months}m</div><div class="text-[10px] text-white/40">${fmtDate(b.startDate)} → ${fmtDate(b.endDate)}</div>`;
+        }
         html += `
         <tr class="hover:bg-white/5">
             <td class="px-6 py-5 font-semibold">${b.name}</td>
@@ -1044,6 +1158,8 @@ function renderBonds() {
             <td class="px-6 py-5 font-medium">₹${(+b.maturityValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td class="px-6 py-5 text-emerald-400">+₹${gain}</td>
             <td class="px-6 py-5 text-emerald-400">+${(+b.gainPct).toFixed(2)}%</td>
+            <td class="px-6 py-5">${tenureHtml}</td>
+            <td class="px-6 py-5">${interestHtml}</td>
             <td class="px-6 py-5 text-right">
                 <div class="flex items-center gap-2 justify-end">
                     <button onclick="showEditModal('bond',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
@@ -1053,18 +1169,24 @@ function renderBonds() {
         </tr>`;
     });
     document.getElementById('bonds-table-body').innerHTML = html ||
-        `<tr><td colspan="6" class="px-6 py-14 text-center text-white/40 text-sm">No bonds yet.</td></tr>`;
+        `<tr><td colspan="8" class="px-6 py-14 text-center text-white/40 text-sm">No bonds yet.</td></tr>`;
 }
 
 function renderMutualFunds() {
     let html = '';
     (financeData.mutualFunds||[]).forEach((m, i) => {
+        const monthly = m.monthlyDiv || 0;
+        const annual  = +(monthly * 12).toFixed(2);
+        const divHtml = monthly > 0
+            ? `<div class="text-amber-400 font-medium">₹${monthly.toFixed(2)}/mo</div><div class="text-[10px] text-amber-300/60">₹${annual.toLocaleString('en-IN')} annual</div>`
+            : `<span class="text-white/30 text-xs">Growth plan</span>`;
         html += `
         <tr class="hover:bg-white/5">
             <td class="px-6 py-5 font-semibold">${m.name}</td>
             <td class="px-6 py-5">${(+m.units).toFixed(3)}</td>
             <td class="px-6 py-5 text-emerald-400">₹${(+m.nav).toFixed(2)}</td>
             <td class="px-6 py-5 font-medium">₹${(+m.currentValue).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td class="px-6 py-5">${divHtml}</td>
             <td class="px-6 py-5 text-right">
                 <div class="flex items-center gap-2 justify-end">
                     <button onclick="showEditModal('mf',${i})" class="flex items-center gap-1 bg-amber-400 hover:bg-amber-500 text-[#0a2540] text-xs font-bold px-3 py-2 rounded-2xl"><i class="fa-solid fa-pen text-[10px]"></i> EDIT</button>
@@ -1074,7 +1196,7 @@ function renderMutualFunds() {
         </tr>`;
     });
     document.getElementById('mf-table-body').innerHTML = html ||
-        `<tr><td colspan="5" class="px-6 py-14 text-center text-white/40 text-sm">No mutual funds yet.</td></tr>`;
+        `<tr><td colspan="6" class="px-6 py-14 text-center text-white/40 text-sm">No mutual funds yet.</td></tr>`;
 }
 
 // ================================================================
@@ -1085,8 +1207,15 @@ function updateKPIs() {
     const bondsSum    = financeData.bonds.reduce((s, b) => s + (b.maturityValue||0), 0);
     const mfSum       = (financeData.mutualFunds||[]).reduce((s, m) => s + (m.currentValue||0), 0);
 
-    financeData.totalPortfolio = parseFloat((holdingsSum + bondsSum + mfSum).toFixed(2));
-    financeData.netWorth       = parseFloat((financeData.totalPortfolio + financeData.cash + financeData.savings).toFixed(2));
+    financeData.totalPortfolio  = parseFloat((holdingsSum + bondsSum + mfSum).toFixed(2));
+    financeData.equityPortfolio = parseFloat((holdingsSum + mfSum).toFixed(2)); // equity+MF only, for chart vs benchmarks
+    financeData.netWorth        = parseFloat((financeData.totalPortfolio + financeData.cash + financeData.savings).toFixed(2));
+
+    // Annual dividends = equity stock dividends + MF monthly dividends × 12 + Bond monthly interest × 12
+    const stockDivAnnual = +financeData.holdings.reduce((s,h) => s + ((h.annualDividend||0) > 0 ? (h.annualDividend||0)*h.qty : 0), 0).toFixed(2);
+    const mfDivAnnual    = +((financeData.mutualFunds||[]).reduce((s,m) => s + ((m.monthlyDiv||0)*12), 0)).toFixed(2);
+    const bondIntAnnual  = +financeData.bonds.reduce((s,b) => s + ((b.monthlyInterest||0)*12), 0).toFixed(2);
+    financeData.dividends = +(stockDivAnnual + mfDivAnnual + bondIntAnnual).toFixed(2);
 
     document.getElementById('kpi-networth') .innerHTML = `₹${financeData.netWorth.toLocaleString('en-IN')}`;
     document.getElementById('kpi-portfolio').innerHTML = `₹${financeData.totalPortfolio.toLocaleString('en-IN')}`;
@@ -1094,12 +1223,24 @@ function updateKPIs() {
     document.getElementById('kpi-dividends').innerHTML = `₹${financeData.dividends.toLocaleString('en-IN')}`;
     document.getElementById('header-networth').textContent = financeData.netWorth.toLocaleString('en-IN',{minimumFractionDigits:2});
 
+    // Update dividend breakdown sub-label
+    const divSubEl = document.getElementById('kpi-div-breakdown');
+    if (divSubEl) {
+        const parts = [];
+        if (stockDivAnnual > 0) parts.push(`Stocks: ₹${stockDivAnnual.toLocaleString('en-IN',{maximumFractionDigits:0})}`);
+        if (mfDivAnnual    > 0) parts.push(`MF: ₹${mfDivAnnual.toLocaleString('en-IN',{maximumFractionDigits:0})}/yr`);
+        if (bondIntAnnual  > 0) parts.push(`Bonds: ₹${bondIntAnnual.toLocaleString('en-IN',{maximumFractionDigits:0})}/yr`);
+        divSubEl.textContent = parts.length ? parts.join(' · ') : 'No dividends yet';
+    }
+
     const savBal = document.getElementById('savings-balance-display');
     if (savBal) savBal.textContent = `₹${financeData.savings.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
 
-    // FIX: Update the LAST benchmark point in-place. Never push a new point here.
+    // FIX: Update the LAST benchmark point in-place using % gain from baseline (no bonds).
     const bd = financeData.benchmarkData;
-    if (bd.portfolio.length > 0) bd.portfolio[bd.portfolio.length - 1] = financeData.totalPortfolio;
+    if (bd.portfolio.length > 0 && bd.basePortfolio) {
+        bd.portfolio[bd.portfolio.length - 1] = +((financeData.equityPortfolio / bd.basePortfolio - 1) * 100).toFixed(2);
+    }
 
     refreshGrowthChart();
     refreshAllocChart();
@@ -1113,13 +1254,17 @@ function updateKPIs() {
 function refreshGrowthChart() {
     if (!growthChart) return;
     const bd = financeData.benchmarkData;
-    growthChart.data.labels               = [...bd.dates];
-    growthChart.data.datasets[0].data     = [...bd.portfolio];
-    growthChart.data.datasets[1].data     = [...(bd.nifty50  || bd.niftybees || [])];
-    growthChart.data.datasets[2].data     = [...(bd.sensex   || [])];
-    growthChart.data.datasets[3].data     = [...(bd.gold     || [])];
-    growthChart.data.datasets[4].data     = [...(bd.fd       || [])];
-    growthChart.options.scales.y.min = 0;
+    const empty = !bd.dates || bd.dates.length < 2;
+
+    // Show/hide empty state overlay
+    let overlay = document.getElementById('growth-chart-empty');
+    if (overlay) overlay.style.display = empty ? 'flex' : 'none';
+
+    growthChart.data.labels               = [...(bd.dates || [])];
+    growthChart.data.datasets[0].data     = [...(bd.portfolio || [])];
+    growthChart.data.datasets[1].data     = [...(bd.nifty50   || [])];
+    growthChart.data.datasets[2].data     = [...(bd.sensex    || [])];
+    growthChart.data.datasets[3].data     = [...(bd.gold      || [])];
     growthChart.update('none');
 }
 
@@ -1180,8 +1325,11 @@ function closeModal(id) {
 function overlayClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
 function showAddModal() {
+    bondInterestManualOverride = false;
+    const ds = document.getElementById('add-div-status');
+    if (ds) { ds.textContent = ''; ds.classList.add('hidden'); }
     // Reset fields
-    ['add-ticker','add-qty','add-avgcost','add-cmp','add-bond-name','add-invested','add-maturity','add-mf-name','add-units','add-nav']
+    ['add-ticker','add-qty','add-avgcost','add-cmp','add-annual-dividend','add-dividend-yield','add-bond-name','add-invested','add-maturity','add-bond-monthly-interest','add-bond-start','add-bond-end','add-mf-name','add-units','add-nav','add-mf-monthly-div']
         .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('add-type').value = 'share';
     toggleAddFields();
@@ -1195,6 +1343,33 @@ function toggleAddFields() {
     document.getElementById('mf-fields')   .classList.toggle('hidden', t !== 'mf');
 }
 
+let bondInterestManualOverride = false;
+
+function autoCalcBondInterest(prefix) {
+    if (bondInterestManualOverride) return;
+    const invested  = parseFloat(document.getElementById(prefix + '-invested')?.value  || document.getElementById('add-invested')?.value);
+    const maturity  = parseFloat(document.getElementById(prefix + '-maturity')?.value  || document.getElementById('add-maturity')?.value);
+    const startVal  = document.getElementById(prefix + '-bond-start')?.value;
+    const endVal    = document.getElementById(prefix + '-bond-end')?.value;
+    const labelEl   = document.getElementById(prefix + '-bond-months-label');
+    const interestEl= document.getElementById(prefix + '-bond-monthly-interest');
+
+    if (!startVal || !endVal || isNaN(invested) || isNaN(maturity) || maturity <= invested) {
+        if (labelEl) labelEl.textContent = '';
+        return;
+    }
+    const start = new Date(startVal);
+    const end   = new Date(endVal);
+    if (end <= start) { if (labelEl) labelEl.textContent = ''; return; }
+
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    if (months <= 0) { if (labelEl) labelEl.textContent = ''; return; }
+
+    const monthly = +((maturity - invested) / months).toFixed(2);
+    if (interestEl) interestEl.value = monthly;
+    if (labelEl)    labelEl.textContent = months + ' months · ₹' + monthly.toFixed(2) + '/mo auto';
+}
+
 function addInvestment() {
     const type = document.getElementById('add-type').value;
     if (type === 'share') {
@@ -1204,16 +1379,28 @@ function addInvestment() {
         const cmp     = parseFloat(document.getElementById('add-cmp').value);
         if (!ticker || !qty || isNaN(qty) || !cmp || isNaN(cmp)) { showToast('⚠️ Please fill Ticker, Qty and CMP.'); return; }
         const currentValue = parseFloat((qty * cmp).toFixed(2));
+        const annualDividend  = parseFloat(document.getElementById('add-annual-dividend').value) || 0;
+        const dividendYieldPct= parseFloat(document.getElementById('add-dividend-yield').value)  || 0;
+        const isDividendStock  = annualDividend > 0;
         const existIdx = financeData.holdings.findIndex(h => h.ticker === ticker);
         if (existIdx >= 0) {
-            // Merge
+            // Merge — preserve dividend if already set, use new value if provided
             const h = financeData.holdings[existIdx];
             const totalQty = h.qty + qty;
             const newAvg   = ((h.avgCost||h.cmp)*h.qty + (avgCost||cmp)*qty) / totalQty;
-            financeData.holdings[existIdx] = { ticker, qty:totalQty, avgCost:+newAvg.toFixed(2), cmp, currentValue:+(totalQty*cmp).toFixed(2) };
+            financeData.holdings[existIdx] = {
+                ...h,
+                qty:totalQty, avgCost:+newAvg.toFixed(2), cmp,
+                currentValue:+(totalQty*cmp).toFixed(2),
+                ...(isDividendStock ? { isDividendStock:true, annualDividend:+annualDividend.toFixed(2), dividendYield:+dividendYieldPct.toFixed(2) } : {})
+            };
             showToast(`✅ Added ${qty} shares to existing ${ticker} position.`);
         } else {
-            financeData.holdings.push({ ticker, qty, avgCost:+avgCost.toFixed(2), cmp, currentValue });
+            financeData.holdings.push({
+                ticker, qty, avgCost:+avgCost.toFixed(2), cmp, currentValue,
+                isDividendStock, annualDividend:+annualDividend.toFixed(2),
+                dividendYield:+dividendYieldPct.toFixed(2)
+            });
             showToast(`✅ ${ticker} added to portfolio!`);
         }
     } else if (type === 'bond') {
@@ -1222,7 +1409,10 @@ function addInvestment() {
         const maturityValue= parseFloat(document.getElementById('add-maturity').value);
         if (!name || isNaN(invested) || isNaN(maturityValue)) { showToast('⚠️ Fill all bond fields.'); return; }
         const gainPct = +((maturityValue - invested) / invested * 100).toFixed(2);
-        financeData.bonds.push({ name, invested, maturityValue, gainPct });
+        const monthlyInterest = parseFloat(document.getElementById('add-bond-monthly-interest').value) || 0;
+        const startDate = document.getElementById('add-bond-start').value || '';
+        const endDate   = document.getElementById('add-bond-end').value   || '';
+        financeData.bonds.push({ name, invested, maturityValue, gainPct, monthlyInterest: +monthlyInterest.toFixed(2), startDate, endDate });
         showToast(`✅ Bond "${name}" added!`);
     } else {
         const name = document.getElementById('add-mf-name').value.trim();
@@ -1230,7 +1420,8 @@ function addInvestment() {
         const nav  = parseFloat(document.getElementById('add-nav').value);
         if (!name || isNaN(units) || isNaN(nav)) { showToast('⚠️ Fill all mutual fund fields.'); return; }
         const currentValue = +(units * nav).toFixed(2);
-        financeData.mutualFunds.push({ name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue });
+        const monthlyDiv   = parseFloat(document.getElementById('add-mf-monthly-div').value) || 0;
+        financeData.mutualFunds.push({ name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue, monthlyDiv: +monthlyDiv.toFixed(2) });
         showToast(`✅ Fund "${name}" added!`);
     }
     closeModal('add-modal');
@@ -1281,12 +1472,18 @@ function showEditModal(type, index) {
         document.getElementById('edit-bond-name').value = b.name;
         document.getElementById('edit-invested') .value = b.invested;
         document.getElementById('edit-maturity') .value = b.maturityValue;
+        document.getElementById('edit-bond-start').value = b.startDate || '';
+        document.getElementById('edit-bond-end')  .value = b.endDate   || '';
+        document.getElementById('edit-bond-monthly-interest').value = b.monthlyInterest || 0;
+        bondInterestManualOverride = false;
+        autoCalcBondInterest('edit');
     } else {
         const m = financeData.mutualFunds[index];
         document.getElementById('edit-mf-fields').classList.remove('hidden');
         document.getElementById('edit-mf-name').value = m.name;
         document.getElementById('edit-units')   .value = m.units;
         document.getElementById('edit-nav')     .value = m.nav;
+        document.getElementById('edit-mf-monthly-div').value = m.monthlyDiv || 0;
     }
     document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -1307,7 +1504,10 @@ function saveEdit() {
         const maturityValue= parseFloat(document.getElementById('edit-maturity').value);
         if (!name || isNaN(invested) || isNaN(maturityValue)) { showToast('⚠️ Fill all fields.'); return; }
         const gainPct = +((maturityValue-invested)/invested*100).toFixed(2);
-        financeData.bonds[currentEditIndex] = { name, invested, maturityValue, gainPct };
+        const monthlyInterest = parseFloat(document.getElementById('edit-bond-monthly-interest').value) || 0;
+        const startDate = document.getElementById('edit-bond-start').value || '';
+        const endDate   = document.getElementById('edit-bond-end').value   || '';
+        financeData.bonds[currentEditIndex] = { name, invested, maturityValue, gainPct, monthlyInterest: +monthlyInterest.toFixed(2), startDate, endDate };
         renderBonds();
         showToast('✅ Bond updated.');
     } else {
@@ -1315,7 +1515,8 @@ function saveEdit() {
         const units= parseFloat(document.getElementById('edit-units').value);
         const nav  = parseFloat(document.getElementById('edit-nav')  .value);
         if (!name || isNaN(units) || isNaN(nav)) { showToast('⚠️ Fill all fields.'); return; }
-        financeData.mutualFunds[currentEditIndex] = { name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue:+(units*nav).toFixed(2) };
+        const monthlyDiv = parseFloat(document.getElementById('edit-mf-monthly-div').value) || 0;
+        financeData.mutualFunds[currentEditIndex] = { name, units:+units.toFixed(3), nav:+nav.toFixed(2), currentValue:+(units*nav).toFixed(2), monthlyDiv: +monthlyDiv.toFixed(2) };
         renderMutualFunds();
         showToast('✅ Mutual fund updated.');
     }
@@ -1441,6 +1642,39 @@ function _parseGoogleFinanceHTML(html) {
     throw new Error('price not found in Google Finance HTML');
 }
 
+// Parse dividend data from Google Finance HTML.
+// Returns { annualAmount, yieldDecimal } — annualAmount is per-share ₹/year.
+function _parseGoogleFinanceDividend(html) {
+    // ── Strategy A: Quarterly dividend amount × 4 (most accurate) ──
+    // Google Finance shows "Quarterly dividend  ₹6.60"
+    const qMatch = html.match(/[Qq]uarterly\s+dividend[^₹\d]{0,80}[₹₹]([\d,]+\.?\d*)/);
+    if (qMatch) {
+        const quarterly = parseFloat(qMatch[1].replace(/,/g,''));
+        if (quarterly > 0) return { annualAmount: +(quarterly * 4).toFixed(2), yieldDecimal: 0 };
+    }
+
+    // ── Strategy B: data-field attribute ──
+    const dfYield = html.match(/data-field="DIVIDEND_YIELD"[^>]*>([\d.]+)%/);
+    if (dfYield) return { annualAmount: 0, yieldDecimal: parseFloat(dfYield[1]) / 100 };
+
+    // ── Strategy C: JSON-LD / window.__NEXT_DATA__ style ──
+    const jYield = html.match(/"dividendYield"\s*:\s*"?([\d.]+)"?/);
+    if (jYield) return { annualAmount: 0, yieldDecimal: parseFloat(jYield[1]) / 100 };
+
+    // ── Strategy D: "Dividend" label (NOT "Dividend yield") near a percentage ──
+    // Google Finance key stats table: <td>Dividend</td><td>6.06%</td>
+    const dLabel = html.match(/>\s*Dividend\s*<[^>]*>[^<]*<[^>]*>([\d.]+)%/);
+    if (dLabel) return { annualAmount: 0, yieldDecimal: parseFloat(dLabel[1]) / 100 };
+
+    // ── Strategy E: percentage within ~300 chars before or after the word "Dividend" ──
+    const before = html.match(/([\d.]+)%[^%<]{0,300}>\s*Dividend\s*</);
+    if (before) return { annualAmount: 0, yieldDecimal: parseFloat(before[1]) / 100 };
+    const after = html.match(/>\s*Dividend\s*<[^>]{0,300}?([\d.]+)%/);
+    if (after) return { annualAmount: 0, yieldDecimal: parseFloat(after[1]) / 100 };
+
+    return { annualAmount: 0, yieldDecimal: 0 };
+}
+
 function _parseGoogleFinanceSearch(text) {
     // Google Finance search returns JSON with matches
     const raw = _unwrap(text);
@@ -1476,7 +1710,54 @@ function _parseYahooSummary(text) {
     return { price, name: r?.price?.shortName || '', summaryDetail: r?.summaryDetail };
 }
 
-// ── Master price fetch: Google Finance first, Yahoo fallback ──
+// ── ETMoney parsers ──
+// ETMoney search API: https://api.etmoney.com/ms/pricews/v3/quotes/search
+function _parseETMoneySearch(text, ticker) {
+    const d = JSON.parse(_unwrap(text));
+    // Response shapes: { data: [ {symbol, ltp, dividendYield, ...} ] }
+    //                  { result: { stocks: [ {...} ] } }
+    //                  [ { symbol, ltp, ... } ]
+    const items = d?.data || d?.result?.stocks || (Array.isArray(d) ? d : null);
+    if (!items || !items.length) throw new Error('no ETMoney items');
+    // Find best match by symbol
+    const upper = ticker.toUpperCase();
+    const match = items.find(i => (i.symbol||i.ticker||'').toUpperCase() === upper) || items[0];
+    const price  = parseFloat(match?.ltp || match?.price || match?.lastPrice || match?.currentPrice || 0);
+    if (!price || price <= 0) throw new Error('no price in ETMoney');
+    return {
+        price,
+        name: match?.companyName || match?.name || ticker,
+        dividendYield: parseFloat(match?.dividendYield || match?.divYield || 0),
+        annualDividend: parseFloat(match?.annualDividend || match?.dividend || 0),
+        source: 'ETMoney'
+    };
+}
+
+// ETMoney stock detail page: https://www.etmoney.com/stocks/<ticker>/overview
+function _parseETMoneyDetail(text, cmp) {
+    const html = _unwrap ? _unwrap(text) : text;
+    // Try JSON embedded in page
+    const jsonMatch = html.match(/"dividendYield"\s*:\s*([\d.]+)/);
+    if (jsonMatch) {
+        const yieldDec = parseFloat(jsonMatch[1]) > 1 ? parseFloat(jsonMatch[1]) / 100 : parseFloat(jsonMatch[1]);
+        if (yieldDec > 0 && cmp > 0) return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
+    }
+    // Try "Dividend Yield" text in page
+    const dyMatch = html.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,60}([\d.]+)\s*%/);
+    if (dyMatch) {
+        const yieldDec = parseFloat(dyMatch[1]) / 100;
+        if (yieldDec > 0 && cmp > 0) return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
+    }
+    // Try annual dividend amount in page
+    const adMatch = html.match(/[Aa]nnual\s+[Dd]ividend[^<\d]{0,60}[₹₹]?\s*([\d,.]+)/);
+    if (adMatch) {
+        const amt = parseFloat(adMatch[1].replace(/,/g, ''));
+        if (amt > 0) return { annualAmount: amt, yieldDecimal: cmp > 0 ? amt / cmp : 0 };
+    }
+    throw new Error('no dividend in ETMoney detail');
+}
+
+// ── Master price fetch: Google Finance first, ETMoney, then Yahoo fallback ──
 async function fetchStockPrice(rawTicker) {
     const ticker  = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
     const exchanges = ['NSE', 'BSE'];
@@ -1496,17 +1777,44 @@ async function fetchStockPrice(rawTicker) {
         } catch {}
     }
 
-    // ── 2. Google Finance search API ──
+    // ── 2. ETMoney API (great for Indian stocks) ──
     try {
-        const gSearchUrl = `https://www.google.com/finance/_/GoogleFinanceUi/data/batchexecute?rpcids=search&f.sid=-1&bl=boq_finance-ui_20240101&hl=en&soc-app=162&soc-platform=1&soc-device=1&_reqid=1&rt=c`;
-        // simpler search endpoint
+        const etSearchUrl = `https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=NSE`;
+        const etText = await _fetchRaw(etSearchUrl, 8000);
+        const etResult = _parseETMoneySearch(etText, ticker);
+        if (etResult.price > 0) return etResult;
+    } catch {}
+    // ETMoney BSE fallback
+    try {
+        const etSearchBse = `https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=BSE`;
+        const etText = await _fetchRaw(etSearchBse, 8000);
+        const etResult = _parseETMoneySearch(etText, ticker);
+        if (etResult.price > 0) return etResult;
+    } catch {}
+    // ETMoney stock detail page fallback
+    try {
+        const etDetailUrl = `https://www.etmoney.com/stocks/${ticker.toLowerCase()}/overview`;
+        const etHtml = await _fetchRaw(etDetailUrl, 9000);
+        const etHtmlUnwrapped = _unwrap ? _unwrap(etHtml) : etHtml;
+        // Parse price from ETMoney detail page
+        const priceMatch = etHtmlUnwrapped.match(/"currentPrice"\s*:\s*([\d.]+)/) ||
+                           etHtmlUnwrapped.match(/"ltp"\s*:\s*([\d.]+)/) ||
+                           etHtmlUnwrapped.match(/class="[^"]*stock-price[^"]*"[^>]*>([\d,.]+)/);
+        if (priceMatch) {
+            const price = parseFloat(priceMatch[1].replace(/,/g, ''));
+            if (price > 0) return { price, name: ticker, source: 'ETMoney Detail', sym: ticker };
+        }
+    } catch {}
+
+    // ── 3. Google Finance search API ──
+    try {
         const gSearch2 = `https://www.google.com/finance/search?q=${encodeURIComponent(ticker + ' NSE')}&hl=en`;
         const html2 = await _fetchRaw(gSearch2, 8000);
         const price = _parseGoogleFinanceHTML(_unwrap(html2));
         if (price > 0) return { price, name: ticker, source: 'Google Finance Search', sym: ticker };
     } catch {}
 
-    // ── 3. Yahoo Finance fallbacks ──
+    // ── 4. Yahoo Finance fallbacks ──
     const yahooSyms = rawTicker.includes('.') ? [rawTicker] : [ticker + '.NS', ticker + '.BO'];
     for (const ySym of yahooSyms) {
         const yEndpoints = [
@@ -1544,11 +1852,12 @@ async function fetchViaProxy(targetUrl, timeoutMs = 10000) {
 async function fetchCmpForAdd() {
     const ticker = document.getElementById('add-ticker').value.trim().toUpperCase();
     if (!ticker) { showToast('⚠️ Enter a Ticker Symbol first.'); return; }
-    const btn    = document.getElementById('fetch-cmp-btn');
-    const status = document.getElementById('fetch-cmp-status');
+    const btn      = document.getElementById('fetch-cmp-btn');
+    const status   = document.getElementById('fetch-cmp-status');
+    const divStatus= document.getElementById('add-div-status');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[9px]"></i> Fetching…';
     btn.disabled  = true;
-    status.textContent = '⏳ Trying live sources…';
+    status.textContent = '⏳ Fetching price + dividends…';
     status.className   = 'text-[10px] text-white/50 mt-1';
     status.classList.remove('hidden');
     try {
@@ -1558,12 +1867,135 @@ async function fetchCmpForAdd() {
         status.className   = 'text-[10px] text-emerald-400 mt-1';
         const avgEl = document.getElementById('add-avgcost');
         if (!avgEl.value) avgEl.value = price.toFixed(2);
+
+        // Fetch dividend in background
+        divStatus.textContent = '⏳ Fetching dividend…';
+        divStatus.classList.remove('hidden');
+        try {
+            const divData = await _fetchDividendForTicker(ticker, price);
+            const divEl   = document.getElementById('add-annual-dividend');
+            const yieldEl = document.getElementById('add-dividend-yield');
+            if (divData.annualAmount > 0) {
+                divEl.value   = divData.annualAmount.toFixed(2);
+                yieldEl.value = ((divData.annualAmount / price) * 100).toFixed(2);
+                divStatus.textContent = `✅ Dividend: ₹${divData.annualAmount.toFixed(2)}/sh/yr`;
+                divStatus.className   = 'text-[10px] text-amber-400';
+            } else if (divData.yieldDecimal > 0) {
+                const annualAmt = +(divData.yieldDecimal * price).toFixed(2);
+                divEl.value   = annualAmt.toFixed(2);
+                yieldEl.value = (divData.yieldDecimal * 100).toFixed(2);
+                divStatus.textContent = `✅ Dividend: ₹${annualAmt.toFixed(2)}/sh (${(divData.yieldDecimal*100).toFixed(2)}% yield)`;
+                divStatus.className   = 'text-[10px] text-amber-400';
+            } else {
+                divEl.value   = '';
+                yieldEl.value = '';
+                divStatus.textContent = 'No dividend data found';
+                divStatus.className   = 'text-[10px] text-white/40';
+            }
+        } catch {
+            divStatus.textContent = 'Dividend fetch failed — enter manually';
+            divStatus.className   = 'text-[10px] text-white/40';
+        }
     } catch {
         status.textContent = '❌ Could not fetch price. Check ticker (e.g. RELIANCE, TCS) or enter manually.';
         status.className   = 'text-[10px] text-red-400 mt-1';
     }
     btn.innerHTML = '<i class="fa-solid fa-bolt text-[9px]"></i> AUTO-FETCH';
     btn.disabled  = false;
+}
+
+// Fetch dividend info — Google Finance → Yahoo quoteSummary → Yahoo chart events → Screener.in → ETMoney page scrape
+async function _fetchDividendForTicker(rawTicker, cmp) {
+    const ticker = rawTicker.replace(/\.NS|\.BO/gi, '').toUpperCase();
+    const nsSym  = ticker + '.NS';
+    const boSym  = ticker + '.BO';
+
+    // ── 1. Google Finance (NSE then BSE) ──
+    for (const ex of ['NSE', 'BSE']) {
+        try {
+            const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:${ex}`, 8000);
+            const div  = _parseGoogleFinanceDividend(_unwrap ? _unwrap(html) : html);
+            if (div.annualAmount > 0) return div;
+            if (div.yieldDecimal > 0 && cmp > 0)
+                return { annualAmount: +(div.yieldDecimal * cmp).toFixed(2), yieldDecimal: div.yieldDecimal };
+        } catch {}
+    }
+
+    // ── 2. Yahoo Finance quoteSummary — trailingAnnualDividendRate (best for NSE stocks) ──
+    for (const ySym of [nsSym, boSym]) {
+        for (const host of ['query1', 'query2']) {
+            try {
+                const url  = `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=summaryDetail`;
+                const text = await _fetchRaw(url, 9000);
+                const sd   = JSON.parse(_unwrap(text))?.quoteSummary?.result?.[0]?.summaryDetail;
+                const rate = sd?.trailingAnnualDividendRate?.raw || 0;
+                const yld  = sd?.trailingAnnualDividendYield?.raw || 0;
+                if (rate > 0) return { annualAmount: +rate.toFixed(2), yieldDecimal: yld > 0 ? yld : (cmp > 0 ? rate/cmp : 0) };
+                if (yld  > 0 && cmp > 0) return { annualAmount: +(yld * cmp).toFixed(2), yieldDecimal: yld };
+            } catch {}
+        }
+    }
+
+    // ── 3. Yahoo Finance chart dividend events (last 12m sum) ──
+    for (const ySym of [nsSym, boSym]) {
+        for (const host of ['query1', 'query2']) {
+            try {
+                const url  = `https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=2y&events=div`;
+                const text = await _fetchRaw(url, 9000);
+                const evts = JSON.parse(_unwrap(text))?.chart?.result?.[0]?.events?.dividends || {};
+                const cutoff = Date.now() / 1000 - 365 * 86400;
+                const total  = Object.values(evts).filter(d => d.date >= cutoff).reduce((s, d) => s + (d.amount || 0), 0);
+                if (total > 0) return { annualAmount: +total.toFixed(2), yieldDecimal: cmp > 0 ? total / cmp : 0 };
+            } catch {}
+        }
+    }
+
+    // ── 4. Screener.in — reliable Indian stock dividend yield source ──
+    try {
+        const scrHtml = await _fetchRaw(`https://www.screener.in/company/${ticker}/consolidated/`, 9000);
+        const unwrapped = _unwrap ? _unwrap(scrHtml) : scrHtml;
+        // Screener shows "Dividend Yield  6.14 %" in key ratios
+        const dyMatch = unwrapped.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
+        if (dyMatch) {
+            const yieldDec = parseFloat(dyMatch[1]) / 100;
+            if (yieldDec > 0 && cmp > 0)
+                return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
+        }
+    } catch {}
+    // Try standalone Screener page too
+    try {
+        const scrHtml2 = await _fetchRaw(`https://www.screener.in/company/${ticker}/`, 9000);
+        const unwrapped2 = _unwrap ? _unwrap(scrHtml2) : scrHtml2;
+        const dyMatch2 = unwrapped2.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
+        if (dyMatch2) {
+            const yieldDec = parseFloat(dyMatch2[1]) / 100;
+            if (yieldDec > 0 && cmp > 0)
+                return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
+        }
+    } catch {}
+
+    // ── 5. ETMoney stock page scrape (HTML, no private API) ──
+    try {
+        const etHtml = await _fetchRaw(`https://www.etmoney.com/stocks/${ticker.toLowerCase()}/overview`, 9000);
+        const etDiv  = _parseETMoneyDetail(etHtml, cmp);
+        if (etDiv.annualAmount > 0) return etDiv;
+    } catch {}
+
+    // ── 6. ETMoney search widget (public autocomplete endpoint) ──
+    try {
+        const etText = await _fetchRaw(
+            `https://www.etmoney.com/api/stocks/search?q=${encodeURIComponent(ticker)}`, 7000
+        );
+        const etResult = _parseETMoneySearch(etText, ticker);
+        if (etResult.annualDividend > 0)
+            return { annualAmount: etResult.annualDividend, yieldDecimal: cmp > 0 ? etResult.annualDividend / cmp : 0 };
+        if (etResult.dividendYield > 0 && cmp > 0) {
+            const y = etResult.dividendYield > 1 ? etResult.dividendYield / 100 : etResult.dividendYield;
+            return { annualAmount: +(y * cmp).toFixed(2), yieldDecimal: y };
+        }
+    } catch {}
+
+    return { annualAmount: 0, yieldDecimal: 0 };
 }
 
 async function fetchNavForAdd() {
@@ -1573,24 +2005,76 @@ async function fetchNavForAdd() {
     status.textContent = '⏳ Searching MFAPI…';
     status.className   = 'text-[10px] text-white/50 mt-1';
     status.classList.remove('hidden');
+
+    // Remove any existing scheme picker
+    const existingPicker = document.getElementById('nav-scheme-picker');
+    if (existingPicker) existingPicker.remove();
+
     try {
         const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(fundName)}`;
         const res  = await fetch(searchUrl, { signal: AbortSignal.timeout(8000) });
         const list = await res.json();
         if (!list || !list.length) throw new Error('No results');
-        const schemeCode = list[0].schemeCode;
-        const schemeName = list[0].schemeName;
+
+        // If only one result, fetch it directly
+        if (list.length === 1) {
+            await applyNavFromScheme(list[0].schemeCode, list[0].schemeName, status);
+            return;
+        }
+
+        // Multiple results — show a picker (top 8 to keep it manageable)
+        const top = list.slice(0, 8);
+        status.textContent = `Found ${list.length} matching schemes — pick the correct plan:`;
+        status.className   = 'text-[10px] text-amber-300 mt-1';
+
+        const picker = document.createElement('div');
+        picker.id = 'nav-scheme-picker';
+        picker.className = 'mt-2 rounded-2xl border border-white/20 bg-[#0a1f35] text-[11px] overflow-y-auto';
+        picker.style.maxHeight = '160px';
+
+        top.forEach((scheme, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-full text-left px-3 py-2 hover:bg-[#00d4aa]/20 text-white/80 border-b border-white/10 last:border-b-0 transition-colors';
+            btn.textContent = scheme.schemeName;
+            btn.onclick = async () => {
+                picker.remove();
+                await applyNavFromScheme(scheme.schemeCode, scheme.schemeName, status);
+            };
+            picker.appendChild(btn);
+        });
+
+        if (list.length > 8) {
+            const note = document.createElement('div');
+            note.className = 'px-3 py-1.5 text-white/40 text-[10px] italic';
+            note.textContent = `+ ${list.length - 8} more — type a more specific name to narrow results.`;
+            picker.appendChild(note);
+        }
+
+        // Insert picker below the status text
+        status.parentNode.insertBefore(picker, status.nextSibling);
+
+    } catch {
+        status.textContent = '⚠️ Could not auto-fetch NAV. Enter manually (try a shorter/exact fund name).';
+        status.className   = 'text-[10px] text-amber-400 mt-1';
+    }
+}
+
+async function applyNavFromScheme(schemeCode, schemeName, statusEl) {
+    statusEl.textContent = '⏳ Fetching NAV…';
+    statusEl.className   = 'text-[10px] text-white/50 mt-1';
+    try {
         const navRes  = await fetch(`https://api.mfapi.in/mf/${schemeCode}/latest`, { signal: AbortSignal.timeout(8000) });
         const navData = await navRes.json();
         const nav = parseFloat(navData?.data?.[0]?.nav);
         if (!isNaN(nav) && nav > 0) {
-            document.getElementById('add-nav').value = nav.toFixed(2);
-            status.textContent = `✅ ${schemeName.slice(0,50)} — NAV ₹${nav.toFixed(2)}`;
-            status.className   = 'text-[10px] text-emerald-400 mt-1';
+            document.getElementById('add-nav').value = nav.toFixed(4);
+            statusEl.textContent = `✅ ${schemeName.slice(0, 55)} — NAV ₹${nav.toFixed(4)}`;
+            statusEl.className   = 'text-[10px] text-emerald-400 mt-1';
         } else throw new Error('NAV parse fail');
     } catch {
-        status.textContent = '⚠️ Could not auto-fetch NAV. Enter manually (try a shorter/exact fund name).';
-        status.className   = 'text-[10px] text-amber-400 mt-1';
+        statusEl.textContent = '⚠️ Could not fetch NAV for this scheme. Enter manually.';
+        statusEl.className   = 'text-[10px] text-amber-400 mt-1';
     }
 }
 
@@ -1600,32 +2084,150 @@ async function fetchNavForAdd() {
 async function refreshLivePrices() {
     const icon = document.getElementById('refresh-icon');
     icon.classList.add('fa-spin');
-    showToast('⏳ Fetching live NSE prices + dividend info…');
+    showToast('⏳ Fetching live NSE prices + dividend history…');
     let updated = 0;
     await Promise.allSettled(financeData.holdings.map(async h => {
         try {
-            const { price, sym, summaryDetail } = await fetchYahooPrice(h.ticker);
+            const { price, sym } = await fetchYahooPrice(h.ticker);
             if (price && price > 0) {
                 h.cmp          = +price.toFixed(2);
                 h.currentValue = +(h.qty * h.cmp).toFixed(2);
                 updated++;
             }
 
-            // Try to get dividend data — available from v10 quoteSummary path
-            let sd = summaryDetail;
-            if (!sd) {
+            // --- Dividend fetch: Google Finance primary, Yahoo chart fallback ---
+            const baseTicker = h.ticker.replace(/\.NS$|\.BO$/i, '');
+            const nsSym      = h.ticker.includes('.') ? h.ticker : baseTicker + '.NS';
+            let annualDiv    = 0;
+            let divYieldPct  = 0;
+
+            // Strategy 1: Google Finance page — parse quarterly dividend or yield
+            try {
+                for (const ex of ['NSE', 'BSE']) {
+                    const gUrl = `https://www.google.com/finance/quote/${baseTicker}:${ex}`;
+                    const text = await _fetchRaw(gUrl, 9000);
+                    const html = _unwrap(text);
+                    const { annualAmount, yieldDecimal } = _parseGoogleFinanceDividend(html);
+                    if (annualAmount > 0) {
+                        annualDiv   = annualAmount;
+                        divYieldPct = h.cmp > 0 ? annualAmount / h.cmp : 0;
+                        break;
+                    }
+                    if (yieldDecimal > 0 && h.cmp > 0) {
+                        divYieldPct = yieldDecimal;
+                        annualDiv   = +(yieldDecimal * h.cmp).toFixed(2);
+                        break;
+                    }
+                }
+            } catch {}
+
+            // Strategy 2: Yahoo Finance chart events (events=div, daily, 2y)
+            if (!annualDiv) {
                 try {
-                    const url  = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${sym}?modules=summaryDetail`;
-                    const data = await fetchViaProxy(url, 8000);
-                    sd = data?.quoteSummary?.result?.[0]?.summaryDetail;
+                    for (const ySym of [nsSym, baseTicker + '.BO']) {
+                        for (const host of ['query1', 'query2']) {
+                            try {
+                                const url  = `https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=2y&events=div`;
+                                const text = await _fetchRaw(url, 9000);
+                                const r    = JSON.parse(_unwrap(text));
+                                const evts = r?.chart?.result?.[0]?.events?.dividends || {};
+                                const cutoff = Date.now() / 1000 - 365 * 86400;
+                                const total  = Object.values(evts)
+                                    .filter(d => d.date >= cutoff)
+                                    .reduce((s, d) => s + (d.amount || 0), 0);
+                                if (total > 0) { annualDiv = +total.toFixed(2); break; }
+                            } catch {}
+                        }
+                        if (annualDiv) break;
+                    }
                 } catch {}
             }
-            const divRate  = sd?.dividendRate?.raw  || 0;
-            const divYield = sd?.dividendYield?.raw || 0;
-            if (divRate > 0 || divYield > 0) {
+
+            // Strategy 3: Yahoo Finance quoteSummary — trailingAnnualDividendRate + yield
+            if (!annualDiv) {
+                try {
+                    for (const ySym of [nsSym, baseTicker + '.BO']) {
+                        for (const host of ['query1', 'query2']) {
+                            try {
+                                const url  = `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=summaryDetail`;
+                                const text = await _fetchRaw(url, 9000);
+                                const r    = JSON.parse(_unwrap(text));
+                                const sd   = r?.quoteSummary?.result?.[0]?.summaryDetail;
+                                const rate  = sd?.trailingAnnualDividendRate?.raw || 0;
+                                const yld   = sd?.trailingAnnualDividendYield?.raw || 0;
+                                if (rate > 0) {
+                                    annualDiv   = +rate.toFixed(2);
+                                    divYieldPct = yld > 0 ? yld : (h.cmp > 0 ? rate / h.cmp : 0);
+                                    break;
+                                }
+                                if (yld > 0 && h.cmp > 0) {
+                                    divYieldPct = yld;
+                                    annualDiv   = +(yld * h.cmp).toFixed(2);
+                                    break;
+                                }
+                            } catch {}
+                        }
+                        if (annualDiv) break;
+                    }
+                } catch {}
+            }
+
+            // Strategy 4: Screener.in — reliable Indian dividend yield
+            if (!annualDiv) {
+                for (const scrPath of [`${baseTicker}/consolidated/`, `${baseTicker}/`]) {
+                    try {
+                        const scrHtml = await _fetchRaw(`https://www.screener.in/company/${scrPath}`, 9000);
+                        const unwrapped = _unwrap ? _unwrap(scrHtml) : scrHtml;
+                        const dyMatch = unwrapped.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
+                        if (dyMatch) {
+                            const yieldDec = parseFloat(dyMatch[1]) / 100;
+                            if (yieldDec > 0 && h.cmp > 0) {
+                                divYieldPct = yieldDec;
+                                annualDiv   = +(yieldDec * h.cmp).toFixed(2);
+                                break;
+                            }
+                        }
+                    } catch {}
+                    if (annualDiv) break;
+                }
+            }
+
+            // Strategy 5: ETMoney stock overview page (HTML scrape, no private API)
+            if (!annualDiv) {
+                try {
+                    const etDetailHtml = await _fetchRaw(`https://www.etmoney.com/stocks/${baseTicker.toLowerCase()}/overview`, 9000);
+                    const etDiv = _parseETMoneyDetail(etDetailHtml, h.cmp);
+                    if (etDiv.annualAmount > 0) {
+                        annualDiv   = etDiv.annualAmount;
+                        divYieldPct = etDiv.yieldDecimal;
+                    }
+                } catch {}
+            }
+
+            // Strategy 6: ETMoney autocomplete/search endpoint (public widget)
+            if (!annualDiv) {
+                try {
+                    const etText = await _fetchRaw(
+                        `https://www.etmoney.com/api/stocks/search?q=${encodeURIComponent(baseTicker)}`, 7000
+                    );
+                    const etResult = _parseETMoneySearch(etText, baseTicker);
+                    if (etResult.annualDividend > 0) {
+                        annualDiv   = etResult.annualDividend;
+                        divYieldPct = h.cmp > 0 ? annualDiv / h.cmp : 0;
+                    } else if (etResult.dividendYield > 0 && h.cmp > 0) {
+                        const y = etResult.dividendYield > 1 ? etResult.dividendYield / 100 : etResult.dividendYield;
+                        divYieldPct = y;
+                        annualDiv   = +(y * h.cmp).toFixed(2);
+                    }
+                } catch {}
+            }
+
+            if (annualDiv > 0) {
                 h.isDividendStock = true;
-                h.annualDividend  = +divRate.toFixed(2);
-                h.dividendYield   = +(divYield * 100).toFixed(2);
+                h.annualDividend  = +annualDiv.toFixed(2);
+                h.dividendYield   = divYieldPct > 0
+                    ? +(divYieldPct * 100).toFixed(2)
+                    : (h.cmp > 0 ? +((annualDiv / h.cmp) * 100).toFixed(2) : 0);
             } else {
                 h.isDividendStock = false;
                 h.annualDividend  = 0;
@@ -1634,34 +2236,66 @@ async function refreshLivePrices() {
         } catch {}
     }));
     icon.classList.remove('fa-spin');
-    financeData.dividends = +financeData.holdings.reduce((s,h) => s + (h.isDividendStock ? (h.annualDividend||0)*h.qty : 0), 0).toFixed(2);
+    const stockDivAnnual2 = +financeData.holdings.reduce((s,h) => s + ((h.annualDividend||0) > 0 ? (h.annualDividend||0)*h.qty : 0), 0).toFixed(2);
+    const mfDivAnnual2    = +((financeData.mutualFunds||[]).reduce((s,m) => s + ((m.monthlyDiv||0)*12), 0)).toFixed(2);
+    const bondIntAnnual2  = +financeData.bonds.reduce((s,b) => s + ((b.monthlyInterest||0)*12), 0).toFixed(2);
+    financeData.dividends = +(stockDivAnnual2 + mfDivAnnual2 + bondIntAnnual2).toFixed(2);
     renderHoldings();
     updateKPIs();
     saveToLocalStorage();
-    showToast(updated > 0 ? `✅ ${updated} stock(s) refreshed!` : '⚠️ Could not fetch prices — check internet or edit manually.');
+    showToast(updated > 0 ? `✅ ${updated} stock(s) refreshed with live dividends!` : '⚠️ Could not fetch prices — check internet or edit manually.');
 }
 
 // ================================================================
-//  MONTHLY SNAPSHOT (for Growth Chart)
+//  MONTHLY SNAPSHOT (for Growth Chart) — % gain from baseline
 // ================================================================
-function addMonthlySnapshot() {
+async function addMonthlySnapshot() {
     const label = prompt('Label for this snapshot (e.g. "May 2025"):');
     if (!label) return;
+    showToast('⏳ Fetching live index prices…');
+
     const bd = financeData.benchmarkData;
+
+    // Fetch real index values from Yahoo Finance
+    let niftyNow = null, sensexNow = null, goldNow = null;
+    try {
+        const [n, s, g] = await Promise.allSettled([
+            fetchStockPrice('^NSEI'),
+            fetchStockPrice('^BSESN'),
+            fetchStockPrice('GC=F')
+        ]);
+        niftyNow  = n.status === 'fulfilled' ? n.value?.price : null;
+        sensexNow = s.status === 'fulfilled' ? s.value?.price : null;
+        goldNow   = g.status === 'fulfilled' ? g.value?.price : null;
+    } catch(e) {}
+
+    const portfolioNow = financeData.equityPortfolio;
+
+    // First snapshot sets the baseline (0% for all)
+    if (bd.dates.length === 0) {
+        bd.basePortfolio = portfolioNow;
+        bd.baseNifty     = niftyNow;
+        bd.baseSensex    = sensexNow;
+        bd.baseGold      = goldNow;
+        bd.portfolio.push(0);
+        bd.nifty50.push(0);
+        bd.sensex.push(0);
+        bd.gold.push(0);
+    } else {
+        // % gain from baseline
+        const pctPortfolio = bd.basePortfolio ? +((portfolioNow / bd.basePortfolio - 1) * 100).toFixed(2) : 0;
+        const pctNifty     = (bd.baseNifty  && niftyNow)  ? +((niftyNow  / bd.baseNifty  - 1) * 100).toFixed(2) : bd.nifty50[bd.nifty50.length-1];
+        const pctSensex    = (bd.baseSensex && sensexNow) ? +((sensexNow / bd.baseSensex - 1) * 100).toFixed(2) : bd.sensex[bd.sensex.length-1];
+        const pctGold      = (bd.baseGold   && goldNow)   ? +((goldNow   / bd.baseGold   - 1) * 100).toFixed(2) : bd.gold[bd.gold.length-1];
+        bd.portfolio.push(pctPortfolio);
+        bd.nifty50.push(pctNifty);
+        bd.sensex.push(pctSensex);
+        bd.gold.push(pctGold);
+    }
     bd.dates.push(label);
-    bd.portfolio.push(financeData.totalPortfolio);
-    // Estimate benchmark growth: use last known values + approximate realistic monthly returns
-    const lastN50 = bd.nifty50[bd.nifty50.length-1]   || financeData.totalPortfolio;
-    const lastSX  = bd.sensex[bd.sensex.length-1]      || financeData.totalPortfolio;
-    const lastGld = bd.gold[bd.gold.length-1]           || financeData.totalPortfolio;
-    const lastFD  = bd.fd[bd.fd.length-1]               || financeData.totalPortfolio;
-    bd.nifty50.push(+(lastN50 * 1.012).toFixed(2));   // ~14.4% annualised
-    bd.sensex.push( +(lastSX  * 1.011).toFixed(2));   // ~13.2% annualised
-    bd.gold.push(   +(lastGld * 1.008).toFixed(2));   // ~9.6%  annualised
-    bd.fd.push(     +(lastFD  * 1.00625).toFixed(2)); // 7.5%   annualised
     refreshGrowthChart();
     saveToLocalStorage();
-    showToast(`✅ Snapshot "${label}" added to growth chart.`);
+    showToast(`✅ Snapshot "${label}" added — % gain from baseline recorded.`);
 }
 
 // ================================================================
@@ -2064,7 +2698,8 @@ function updateOverview() {
 
     // Dividend monthly
     const divMonthly = document.getElementById('kpi-div-monthly');
-    if (divMonthly && fd.dividends > 0) divMonthly.textContent = '₹' + (fd.dividends/12).toLocaleString('en-IN',{maximumFractionDigits:0}) + '/month passive';
+    if (divMonthly && financeData.dividends > 0) divMonthly.textContent = '₹' + (financeData.dividends/12).toLocaleString('en-IN',{maximumFractionDigits:0}) + '/month passive';
+    else if (divMonthly) divMonthly.textContent = '₹0/month passive';
 
     // Salary stats from salary entries
     const sal = fd.salaryEntries || [];
@@ -2135,6 +2770,328 @@ function updateOverview() {
             `;
         }
     }
+}
+
+// ================================================================
+//  KPI DRAWER — click any KPI card for detailed breakdown
+// ================================================================
+function _fmt(n, dec=0) {
+    return '₹' + (+n||0).toLocaleString('en-IN', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+function _pct(val, total) {
+    return total > 0 ? ((val/total)*100).toFixed(1) + '%' : '0%';
+}
+function _row(label, value, color='text-white', sub='', barPct=null, barColor='#00d4aa') {
+    const barHtml = barPct !== null
+        ? `<div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${Math.min(100,barPct).toFixed(1)}%;background:${barColor};"></div></div>`
+        : '';
+    return `<div class="kpi-row">
+        <div class="flex-1 min-w-0">
+            <span class="text-sm text-white/80">${label}</span>
+            ${sub ? `<div class="text-[10px] text-white/35 mt-0.5">${sub}</div>` : ''}
+            ${barHtml}
+        </div>
+        <span class="text-sm font-semibold ml-4 shrink-0 ${color}">${value}</span>
+    </div>`;
+}
+function _totalRow(label, value, color='text-[#00d4aa]') {
+    return `<div class="kpi-total-row"><span class="text-sm font-semibold text-white/80">${label}</span><span class="text-base font-bold ${color}">${value}</span></div>`;
+}
+function _sectionTitle(t) { return `<p class="kpi-section-title">${t}</p>`; }
+
+function openKpiDrawer(type) {
+    const fd    = financeData;
+    const modal = document.getElementById('kpi-drawer');
+    const body  = document.getElementById('kpi-drawer-body');
+    const title = document.getElementById('kpi-drawer-title');
+    const sub   = document.getElementById('kpi-drawer-subtitle');
+    const icon  = document.getElementById('kpi-drawer-icon');
+
+    let html = '';
+    let titleText = '', subText = '', iconHtml = '', iconBg = '';
+
+    // ── NET WORTH ──────────────────────────────────────────────
+    if (type === 'networth') {
+        titleText = 'Net Worth Breakdown';
+        iconHtml  = '<i class="fa-solid fa-wallet text-[#00d4aa]"></i>';
+        iconBg    = 'background:rgba(0,212,170,0.15)';
+        const eq   = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
+        const bond = fd.bonds.reduce((s,b)=>s+(b.maturityValue||0),0);
+        const mf   = (fd.mutualFunds||[]).reduce((s,m)=>s+(m.currentValue||0),0);
+        const sav  = fd.savings || 0;
+        const total = fd.netWorth || 1;
+        subText = `Total: ${_fmt(total)}`;
+        html += _sectionTitle('Portfolio Assets');
+        html += _row('Equity Holdings',   _fmt(eq),   'text-[#00d4aa]', `${_pct(eq,total)} of net worth`,   (eq/total)*100, '#00d4aa');
+        html += _row('Bonds & Fixed Dep.', _fmt(bond), 'text-amber-400', `${_pct(bond,total)} of net worth`, (bond/total)*100, '#f59e0b');
+        html += _row('Mutual Funds',       _fmt(mf),   'text-purple-400',`${_pct(mf,total)} of net worth`,  (mf/total)*100, '#a78bfa');
+        html += _sectionTitle('Liquid Assets');
+        html += _row('Bank Savings',       _fmt(sav),  'text-blue-400',  `${_pct(sav,total)} of net worth`,  (sav/total)*100, '#60a5fa');
+        html += _totalRow('Total Net Worth', _fmt(total));
+    }
+
+    // ── TOTAL PORTFOLIO ────────────────────────────────────────
+    else if (type === 'portfolio') {
+        titleText = 'Portfolio Breakdown';
+        iconHtml  = '<i class="fa-solid fa-chart-pie text-[#00d4aa]"></i>';
+        iconBg    = 'background:rgba(0,212,170,0.15)';
+        const eq   = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
+        const bond = fd.bonds.reduce((s,b)=>s+(b.maturityValue||0),0);
+        const mf   = (fd.mutualFunds||[]).reduce((s,m)=>s+(m.currentValue||0),0);
+        const total = fd.totalPortfolio || 1;
+        subText = `${_fmt(total)} across ${fd.holdings.length + fd.bonds.length + (fd.mutualFunds||[]).length} holdings`;
+
+        if (fd.holdings.length) {
+            html += _sectionTitle(`Equity Stocks (${fd.holdings.length})`);
+            const sorted = [...fd.holdings].sort((a,b)=>(b.currentValue||0)-(a.currentValue||0));
+            sorted.forEach(h => {
+                const pnl = h.avgCost ? ((h.cmp - h.avgCost)/h.avgCost*100).toFixed(1) : null;
+                const col = pnl === null ? 'text-white' : parseFloat(pnl)>=0 ? 'text-emerald-400' : 'text-red-400';
+                const pnlStr = pnl !== null ? ` (${parseFloat(pnl)>=0?'▲':'▼'}${Math.abs(pnl)}%)` : '';
+                html += _row(h.ticker, _fmt(h.currentValue||0), col, `${h.qty} shares · CMP ₹${h.cmp}${pnlStr}`, ((h.currentValue||0)/total)*100, '#00d4aa');
+            });
+        }
+        if (fd.bonds.length) {
+            html += _sectionTitle(`Bonds & Fixed Deposits (${fd.bonds.length})`);
+            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.maturityValue||0), 'text-amber-400', `Invested ${_fmt(b.invested)} · +${b.gainPct}% gain`, ((b.maturityValue||0)/total)*100, '#f59e0b'));
+        }
+        if ((fd.mutualFunds||[]).length) {
+            html += _sectionTitle(`Mutual Funds (${fd.mutualFunds.length})`);
+            fd.mutualFunds.forEach(m => html += _row(m.name, _fmt(m.currentValue||0), 'text-purple-400', `${m.units} units · NAV ₹${m.nav}`, ((m.currentValue||0)/total)*100, '#a78bfa'));
+        }
+        html += _totalRow('Total Portfolio Value', _fmt(total));
+    }
+
+    // ── BANK SAVINGS ───────────────────────────────────────────
+    else if (type === 'savings') {
+        titleText = 'Bank & Liquid Savings';
+        iconHtml  = '<i class="fa-solid fa-piggy-bank text-amber-400"></i>';
+        iconBg    = 'background:rgba(251,191,36,0.15)';
+        const sav  = fd.savings || 0;
+        subText = 'Your liquid balance overview';
+        html += _sectionTitle('Savings Account');
+        html += _row('Current Balance', _fmt(sav), 'text-blue-400', 'As manually set');
+        html += _sectionTitle('Context');
+        const nw = fd.netWorth || 1;
+        const savPct = (sav/nw*100).toFixed(1);
+        html += _row('% of Net Worth', savPct + '%', 'text-white/80', sav > nw*0.2 ? '✅ Good liquidity cushion' : '⚠️ Consider keeping 3–6 months expenses liquid');
+        const sal = fd.salaryEntries || [];
+        if (sal.length >= 3) {
+            const avgExp = sal.slice(-3).reduce((s,e)=>s+(e.expense||0),0)/3;
+            const months = avgExp > 0 ? (sav/avgExp).toFixed(1) : '∞';
+            html += _row('Emergency Fund Cover', `${months} months`, 'text-emerald-400', `Based on avg monthly expense ${_fmt(avgExp)}`);
+        }
+        html += _totalRow('Liquid Balance', _fmt(sav), 'text-blue-400');
+    }
+
+    // ── ANNUAL DIVIDENDS ───────────────────────────────────────
+    else if (type === 'dividends') {
+        titleText = 'Dividend Breakdown';
+        iconHtml  = '<i class="fa-solid fa-coins text-amber-400"></i>';
+        iconBg    = 'background:rgba(251,191,36,0.15)';
+        const totalAnnual = fd.dividends || 0;
+        subText = `${_fmt(totalAnnual)}/year · ${_fmt(totalAnnual/12)}/month passive`;
+
+        // Stock dividends
+        const divHoldings = fd.holdings.filter(h => (h.annualDividend||0) > 0);
+        if (divHoldings.length) {
+            html += _sectionTitle('📈 Equity Stock Dividends');
+            divHoldings.sort((a,b)=>(b.annualDividend*b.qty)-(a.annualDividend*a.qty)).forEach(h => {
+                const annual = +(h.annualDividend * h.qty).toFixed(2);
+                const monthly = +(annual/12).toFixed(2);
+                html += _row(
+                    h.ticker,
+                    _fmt(annual),
+                    'text-amber-400',
+                    `₹${h.annualDividend}/sh × ${h.qty} shares · ${h.dividendYield?.toFixed(2)||'?'}% yield · ${_fmt(monthly)}/mo`,
+                    totalAnnual > 0 ? (annual/totalAnnual)*100 : 0,
+                    '#f59e0b'
+                );
+            });
+            const noDiv = fd.holdings.filter(h => !(h.annualDividend > 0));
+            if (noDiv.length) html += `<p class="text-[10px] text-white/30 px-2">${noDiv.map(h=>h.ticker).join(', ')} — no dividend in last 12m</p>`;
+        } else if (fd.holdings.length) {
+            html += _sectionTitle('📈 Equity Stock Dividends');
+            html += `<div class="kpi-row"><span class="text-sm text-white/40">No dividend data yet — click Refresh Prices on the portfolio page.</span></div>`;
+        }
+
+        // Bond interest
+        const bondInt = fd.bonds.filter(b => (b.monthlyInterest||0) > 0);
+        if (bondInt.length || fd.bonds.length) {
+            html += _sectionTitle('🏦 Bond / FD Monthly Interest (Coupon)');
+            if (bondInt.length) {
+                bondInt.forEach(b => {
+                    const annual = +(b.monthlyInterest * 12).toFixed(2);
+                    html += _row(
+                        b.name.length > 32 ? b.name.slice(0,32)+'…' : b.name,
+                        _fmt(annual),
+                        'text-amber-400',
+                        `₹${b.monthlyInterest.toFixed(2)}/month × 12 = ${_fmt(annual)}/yr`,
+                        totalAnnual > 0 ? (annual/totalAnnual)*100 : 0,
+                        '#f59e0b'
+                    );
+                });
+            } else {
+                html += `<div class="kpi-row"><span class="text-sm text-white/40">No coupon/interest set — edit any bond and set monthly interest.</span></div>`;
+            }
+        }
+
+        // MF dividends
+        const mfDiv = (fd.mutualFunds||[]).filter(m => (m.monthlyDiv||0) > 0);
+        if (mfDiv.length || (fd.mutualFunds||[]).length) {
+            html += _sectionTitle('🏦 Mutual Fund Dividends (IDCW)');
+            if (mfDiv.length) {
+                mfDiv.forEach(m => {
+                    const annual = +(m.monthlyDiv * 12).toFixed(2);
+                    html += _row(
+                        m.name.length > 32 ? m.name.slice(0,32)+'…' : m.name,
+                        _fmt(annual),
+                        'text-purple-400',
+                        `₹${m.monthlyDiv.toFixed(2)}/month × 12 = ${_fmt(annual)}/yr`,
+                        totalAnnual > 0 ? (annual/totalAnnual)*100 : 0,
+                        '#a78bfa'
+                    );
+                });
+            } else {
+                html += `<div class="kpi-row"><span class="text-sm text-white/40">No IDCW funds — edit any MF and set monthly dividend amount.</span></div>`;
+            }
+        }
+
+        // Summary
+        const stockDiv = fd.holdings.reduce((s,h)=>s+((h.annualDividend||0)>0?(h.annualDividend||0)*h.qty:0),0);
+        const mfDivTotal = (fd.mutualFunds||[]).reduce((s,m)=>s+((m.monthlyDiv||0)*12),0);
+        const bondIntTotal = fd.bonds.reduce((s,b)=>s+((b.monthlyInterest||0)*12),0);
+        html += _sectionTitle('Summary');
+        if (stockDiv > 0)    html += _row('Equity Dividends (annual)',       _fmt(stockDiv),     'text-amber-400');
+        if (bondIntTotal > 0) html += _row('Bond / FD Interest (annual)',    _fmt(bondIntTotal), 'text-amber-400');
+        if (mfDivTotal > 0)  html += _row('MF Dividends (annual)',           _fmt(mfDivTotal),   'text-purple-400');
+        html += _totalRow('Total Annual Dividends', _fmt(totalAnnual));
+        if (totalAnnual > 0) html += _row('Monthly Passive Income', _fmt(totalAnnual/12), 'text-emerald-400', 'Average if distributed evenly each month');
+    }
+
+    // ── TOTAL INVESTED ─────────────────────────────────────────
+    else if (type === 'invested') {
+        titleText = 'Cost Basis Breakdown';
+        iconHtml  = '<i class="fa-solid fa-receipt text-[#00d4aa]"></i>';
+        iconBg    = 'background:rgba(0,212,170,0.15)';
+        const cost = fd.holdings.reduce((s,h)=>s+(h.qty*(h.avgCost||h.cmp||0)),0);
+        const bondInv = fd.bonds.reduce((s,b)=>s+(b.invested||0),0);
+        const mfCost  = (fd.mutualFunds||[]).reduce((s,m)=>s+(m.units*(m.avgCost||m.nav||0)),0);
+        const totalInv = cost + bondInv; // mf cost not always available
+        subText = `Total capital deployed: ${_fmt(totalInv)}`;
+        html += _sectionTitle(`Equity (${fd.holdings.length} stocks)`);
+        if (fd.holdings.length) {
+            fd.holdings.forEach(h => {
+                const c = +(h.qty*(h.avgCost||h.cmp||0)).toFixed(2);
+                const cur = h.currentValue||0;
+                const pnl = cur - c;
+                const col = pnl>=0?'text-emerald-400':'text-red-400';
+                html += _row(h.ticker, _fmt(c), 'text-white', `${h.qty} × ₹${h.avgCost||h.cmp} avg · P&L: <span class="${col}">${pnl>=0?'+':''}${_fmt(Math.abs(pnl))}</span>`);
+            });
+        } else html += `<div class="kpi-row"><span class="text-white/40 text-sm">No equity holdings.</span></div>`;
+        if (fd.bonds.length) {
+            html += _sectionTitle(`Bonds & Fixed Deposits (${fd.bonds.length})`);
+            fd.bonds.forEach(b => html += _row(b.name, _fmt(b.invested||0), 'text-amber-400', `Maturity: ${_fmt(b.maturityValue||0)} · +${b.gainPct}%`));
+        }
+        html += _totalRow('Total Cost Basis', _fmt(totalInv));
+        const cur = fd.holdings.reduce((s,h)=>s+(h.currentValue||0),0);
+        const pnl = cur - cost;
+        html += `<div class="kpi-row" style="background:${pnl>=0?'rgba(52,211,153,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${pnl>=0?'rgba(52,211,153,0.25)':'rgba(239,68,68,0.25)'}">
+            <span class="text-sm text-white/80">Equity Unrealised P&L</span>
+            <span class="text-sm font-bold ${pnl>=0?'text-emerald-400':'text-red-400'}">${pnl>=0?'+':''}${_fmt(Math.abs(pnl))} (${cost>0?((pnl/cost)*100).toFixed(2):0}%)</span>
+        </div>`;
+    }
+
+    // ── UNREALISED P&L ─────────────────────────────────────────
+    else if (type === 'pnl') {
+        titleText = 'Unrealised P&L Detail';
+        iconHtml  = '<i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>';
+        iconBg    = 'background:rgba(52,211,153,0.15)';
+        subText   = 'Per-stock unrealised gain/loss';
+        const sorted = [...fd.holdings].sort((a,b)=>{
+            const pA = (a.currentValue||0)-(a.qty*(a.avgCost||a.cmp||0));
+            const pB = (b.currentValue||0)-(b.qty*(b.avgCost||b.cmp||0));
+            return pB - pA;
+        });
+        let totalPnl = 0, totalCost = 0;
+        if (sorted.length) {
+            html += _sectionTitle('Stock-wise Unrealised P&L');
+            sorted.forEach(h => {
+                const cost = h.qty*(h.avgCost||h.cmp||0);
+                const cur  = h.currentValue||0;
+                const pnl  = cur - cost;
+                const pct  = cost > 0 ? ((pnl/cost)*100).toFixed(2) : '0';
+                totalPnl  += pnl;
+                totalCost += cost;
+                const col  = pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+                html += _row(h.ticker, `${pnl>=0?'+':''}${_fmt(Math.abs(pnl))}`, col, `CMP ₹${h.cmp} vs avg ₹${h.avgCost||h.cmp} · ${pnl>=0?'▲':'▼'}${Math.abs(pct)}%`);
+            });
+        } else {
+            html += `<div class="kpi-row"><span class="text-white/40 text-sm">No holdings yet.</span></div>`;
+        }
+        const pnlCol = totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+        html += _totalRow('Total Unrealised P&L', `${totalPnl>=0?'+':''}${_fmt(Math.abs(totalPnl))}`, pnlCol);
+        if (totalCost > 0) html += _row('Overall Return', ((totalPnl/totalCost)*100).toFixed(2)+'%', pnlCol, 'On total cost basis');
+    }
+
+    // ── SALARY ─────────────────────────────────────────────────
+    else if (type === 'salary') {
+        titleText = 'Salary History';
+        iconHtml  = '<i class="fa-solid fa-briefcase text-emerald-400"></i>';
+        iconBg    = 'background:rgba(52,211,153,0.15)';
+        const sal  = fd.salaryEntries || [];
+        subText    = `${sal.length} month${sal.length!==1?'s':''} of data`;
+        if (!sal.length) {
+            html += `<div class="kpi-row"><span class="text-white/40 text-sm">No salary entries yet. Go to Salary & Expenses to add.</span></div>`;
+        } else {
+            html += _sectionTitle('Recent 6 Months');
+            const recent = sal.slice(-6).reverse();
+            const maxSal = Math.max(...recent.map(e=>e.salary), 1);
+            recent.forEach(e => {
+                const invPct = e.salary>0?((e.invested/e.salary)*100).toFixed(1):0;
+                html += _row(e.month, _fmt(e.salary), 'text-emerald-400', `Invested ${_fmt(e.invested)} (${invPct}%) · Expense ${_fmt(e.expense||0)}`, (e.salary/maxSal)*100, '#34d399');
+            });
+            const last3 = sal.slice(-3);
+            const avg = last3.reduce((s,e)=>s+e.salary,0)/last3.length;
+            html += _totalRow('3-Month Average', _fmt(avg), 'text-emerald-400');
+        }
+    }
+
+    // ── SAVINGS RATE ───────────────────────────────────────────
+    else if (type === 'savingsrate') {
+        titleText = 'Savings Rate Analysis';
+        iconHtml  = '<i class="fa-solid fa-percent text-purple-400"></i>';
+        iconBg    = 'background:rgba(167,139,250,0.15)';
+        const sal  = fd.salaryEntries || [];
+        subText    = 'Invested ÷ Salary each month';
+        if (!sal.length) {
+            html += `<div class="kpi-row"><span class="text-white/40 text-sm">No salary data yet.</span></div>`;
+        } else {
+            html += _sectionTitle('Month-by-month savings rate');
+            const recent = sal.slice(-6).reverse();
+            recent.forEach(e => {
+                const rate = e.salary>0?((e.invested/e.salary)*100).toFixed(1):0;
+                const col  = rate>=20?'text-emerald-400':rate>=10?'text-amber-400':'text-red-400';
+                const msg  = rate>=20?'🌟 Excellent':rate>=10?'👍 Good':'⚠️ Low';
+                html += _row(e.month, rate+'%', col, `${msg} · Invested ${_fmt(e.invested)} of ${_fmt(e.salary)}`, parseFloat(rate), rate>=20?'#34d399':rate>=10?'#f59e0b':'#ef4444');
+            });
+            const last3 = sal.slice(-3);
+            const avgRate = last3.reduce((s,e)=>s+(e.salary>0?(e.invested/e.salary*100):0),0)/last3.length;
+            html += _totalRow('3-Month Avg Rate', avgRate.toFixed(1)+'%', avgRate>=20?'text-emerald-400':avgRate>=10?'text-amber-400':'text-red-400');
+            html += _sectionTitle('Benchmarks');
+            html += _row('🌟 Excellent', '≥ 20%',  'text-emerald-400');
+            html += _row('👍 Good',      '10–20%', 'text-amber-400');
+            html += _row('⚠️ Low',       '< 10%',  'text-red-400');
+        }
+    }
+
+    // Render
+    icon.innerHTML = iconHtml;
+    icon.setAttribute('style', iconBg);
+    title.textContent = titleText;
+    sub.textContent   = subText;
+    body.innerHTML    = html || '<p class="text-white/40 text-sm">No data yet.</p>';
+    modal.classList.remove('hidden');
 }
 
 // ================================================================
@@ -2302,9 +3259,11 @@ function updateMarketStatus(now) {
     }
 }
 function setGreeting() {
-    const h = new Date().getHours();
+    const h    = new Date().getHours();
+    const name = financeData.userName || 'there';
     document.getElementById('greeting-text').textContent =
-        (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Arun';
+        (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', ' + name;
+    document.getElementById('header-username').textContent = (financeData.userName || 'My') + ' Finance OS';
 }
 
 // ================================================================
@@ -2314,6 +3273,14 @@ window.addEventListener('load', async () => {
     loadFromLocalStorage();
     await restoreCsvHandle();
 
+    // First-run: prompt for name if not set
+    if (!financeData.userName) {
+        const name = prompt('Welcome to QUALTRIM! What\'s your name?');
+        if (name && name.trim()) {
+            financeData.userName = name.trim();
+            saveToLocalStorage();
+        }
+    }
     setGreeting();
     updateClock();
     setInterval(updateClock, 30000);
@@ -2358,13 +3325,7 @@ window.addEventListener('load', async () => {
                     tension: 0.35, borderWidth: 1.5, pointRadius: 3,
                     borderDash: [2,4]
                 },
-                {
-                    label: 'FD (7.5% p.a.)',
-                    data: [...(bd.fd || [])],
-                    borderColor: 'rgba(255,255,255,0.3)', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
-                    borderDash: [2,4]
-                }
+
             ]
         },
         options: {
@@ -2372,10 +3333,10 @@ window.addEventListener('load', async () => {
             animation: false,
             plugins: {
                 legend: { display: true, position: 'top', labels: { color: 'rgba(255,255,255,0.7)', font:{size:11}, boxWidth: 16, padding: 14 } },
-                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ₹${(+ctx.parsed.y).toLocaleString('en-IN')}` } }
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%` } }
             },
             scales: {
-                y: { min: 0, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', callback: v=>'₹'+v.toLocaleString('en-IN')} },
+                y: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%'} },
                 x: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)'} }
             }
         }
@@ -2401,9 +3362,44 @@ window.addEventListener('load', async () => {
     updateKPIs();
     checkForMonthlyReminder();
     setTimeout(refreshLivePrices, 1500);
+    setTimeout(autoSeedBaselineIfEmpty, 2500); // seed baseline after prices load
     loadEmailSettings();
     setTimeout(checkAndSendMonthEndReminder, 3000);
 });
+
+async function autoSeedBaselineIfEmpty() {
+    const bd = financeData.benchmarkData;
+    if (bd.dates && bd.dates.length > 0) return; // already has data
+
+    // Fetch real index prices silently
+    let niftyNow = null, sensexNow = null, goldNow = null;
+    try {
+        const [n, s, g] = await Promise.allSettled([
+            fetchStockPrice('^NSEI'),
+            fetchStockPrice('^BSESN'),
+            fetchStockPrice('GC=F')
+        ]);
+        niftyNow  = n.status === 'fulfilled' ? n.value?.price : null;
+        sensexNow = s.status === 'fulfilled' ? s.value?.price : null;
+        goldNow   = g.status === 'fulfilled' ? g.value?.price : null;
+    } catch(e) {}
+
+    const now = new Date();
+    const label = now.toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+
+    bd.basePortfolio = financeData.equityPortfolio || 0;
+    bd.baseNifty     = niftyNow;
+    bd.baseSensex    = sensexNow;
+    bd.baseGold      = goldNow;
+    bd.dates.push(label);
+    bd.portfolio.push(0);
+    bd.nifty50.push(0);
+    bd.sensex.push(0);
+    bd.gold.push(0);
+
+    refreshGrowthChart();
+    saveToLocalStorage();
+}
 </script>
 </body>
 </html>
