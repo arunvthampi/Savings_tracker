@@ -298,6 +298,9 @@
                 <i class="fa-solid fa-bell text-lg"></i>
                 <span id="reminder-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center flex">!</span>
             </button>
+            <button onclick="requestNotifPermission()" id="browser-notif-btn" title="Enable browser push notifications" style="color:rgba(255,255,255,0.4); font-size:11px; font-family:'DM Mono',monospace; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:5px 10px; display:flex; align-items:center; gap:5px;" onmouseenter="this.style.borderColor='rgba(240,180,41,0.3)';this.style.color='#F0B429'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.4)'">
+                <i class="fa-solid fa-mobile-screen-button"></i><span id="hdr-notif-label">PUSH ALERTS</span>
+            </button>
             <button onclick="linkCsvFile()" id="csv-link-btn"
                     class="flex items-center gap-x-1.5 border font-semibold px-4 py-2 text-xs"
                     style="background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); border-radius:6px; color: rgba(255,255,255,0.7); font-family:'DM Mono',monospace;"
@@ -348,6 +351,7 @@
             <a onclick="navigateTo(6)"  id="nav-6"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-sack-dollar w-5"></i><span>Mutual Funds</span></a>
             <a onclick="navigateTo(8)"  id="nav-8"  class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-piggy-bank w-5"></i><span>Savings</span></a>
             <a onclick="navigateTo(10)" id="nav-10" class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-wallet w-5"></i><span>Salary &amp; Spend</span></a>
+            <a onclick="navigateTo(12)" id="nav-12" class="sidebar-link flex items-center gap-x-3 px-4 py-3 font-medium" style="border-radius:10px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-crosshairs w-5" style="color:#FF6B35;"></i><span>Watchlist</span><span id="watchlist-alert-badge" class="hidden ml-auto text-[9px] bg-red-500 text-white font-bold px-1.5 py-0.5 rounded-full">!</span></a>
         </nav>
         <div class="mt-auto pt-6" style="border-top: 1px solid rgba(255,255,255,0.06);">
             <div class="px-4 py-3" style="background: rgba(240,180,41,0.04); border: 1px solid rgba(240,180,41,0.1); border-radius:8px;">
@@ -511,6 +515,10 @@
                                 onmouseenter="this.style.background='rgba(240,180,41,0.2)'" onmouseleave="this.style.background='rgba(240,180,41,0.1)'">
                                 <i class="fa-solid fa-plus mr-1"></i>Add Snapshot
                             </button>
+                            <button onclick="resetChartBaseline()" title="Clear all chart history and re-seed from today" style="font-size:11px; background:rgba(255,71,87,0.08); border:1px solid rgba(255,71,87,0.25); color:#FF4757; border-radius:6px; padding:5px 10px; font-family:'DM Mono',monospace; cursor:pointer;"
+                                onmouseenter="this.style.background='rgba(255,71,87,0.18)'" onmouseleave="this.style.background='rgba(255,71,87,0.08)'">
+                                <i class="fa-solid fa-rotate-left mr-1"></i>Reset
+                            </button>
                             <span style="font-size:11px; color:#00C896; font-family:'DM Mono',monospace;">● Live</span>
                         </div>
                     </div>
@@ -518,8 +526,8 @@
                         <canvas id="growthChart"></canvas>
                         <div id="growth-chart-empty" style="display:flex;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(8,12,20,0.85);border-radius:8px;backdrop-filter:blur(4px);">
                             <i class="fa-solid fa-chart-line text-3xl" style="color:rgba(240,180,41,0.3);"></i>
-                            <p style="color:rgba(255,255,255,0.5); font-size:13px; font-family:'DM Mono',monospace;">No snapshots yet</p>
-                            <p style="color:rgba(255,255,255,0.35); font-size:11px; text-align:center; padding:0 24px; font-family:'DM Mono',monospace;">Click <strong style="color:#F0B429;">+ Add Snapshot</strong> to record today as your baseline, then add another next month to see % growth vs Nifty, Sensex &amp; Gold.</p>
+                            <p style="color:rgba(255,255,255,0.5); font-size:13px; font-family:'DM Mono',monospace;">Loading benchmarks…</p>
+                            <p style="color:rgba(255,255,255,0.35); font-size:11px; text-align:center; padding:0 24px; font-family:'DM Mono',monospace;">Nifty 50, Sensex &amp; Gold load automatically. Click <strong style="color:#F0B429;">+ Add Snapshot</strong> to record your portfolio's % gain at any point.</p>
                         </div>
                     </div>
                 </div>
@@ -667,7 +675,6 @@
                     <div class="flex gap-3 flex-wrap" style="font-size:11px; font-family:'DM Mono',monospace;">
                         <span style="color:#00C896; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#00C896; border-radius:3px; display:inline-block;"></span>Salary</span>
                         <span style="color:#F0B429; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#F0B429; border-radius:3px; display:inline-block;"></span>Invested</span>
-                        <span style="color:#FF6B35; display:flex; align-items:center; gap:5px;"><span style="width:24px; height:2px; background:#FF6B35; display:inline-block; border-radius:2px;"></span>Expense</span>
                         <span style="color:#FF4757; display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; background:#FF4757; border-radius:3px; display:inline-block;"></span>Debt/EMI</span>
                     </div>
                 </div>
@@ -708,14 +715,109 @@
             </div>
             <p class="text-[10px] text-white/30 mt-3 text-center">Expense = Salary − Invested − EMI + Bank Balance. Balance Left = Salary − All Outflows.</p>
         </div>
+
+        <!-- ===== Screen 12 – Watchlist ===== -->
+        <div id="screen-12" class="hidden">
+            <div class="flex items-start justify-between mb-6 flex-wrap gap-3">
+                <div>
+                    <div class="section-badge mb-3"><i class="fa-solid fa-crosshairs" style="color:#FF6B35;"></i> WATCHLIST</div>
+                    <h2 class="heading-font mb-1" style="font-size:2rem; color:#F0F2F8;">Buy Watchlist</h2>
+                    <p style="color:rgba(255,255,255,0.4); font-size:13px; font-family:'DM Mono',monospace;">Set your target buy price. Get notified when the stock hits your trigger.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="wl-notif-status" class="text-xs font-medium px-3 py-1.5 rounded-lg border cursor-pointer" style="font-family:'DM Mono',monospace; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.03);" onclick="requestNotifPermission()">
+                        <i class="fa-solid fa-bell mr-1"></i><span id="wl-notif-label">Enable Alerts</span>
+                    </div>
+                    <button onclick="showAddWatchlistModal()" class="btn-primary flex items-center gap-x-2 px-5 py-2.5 text-xs" style="border-radius:8px; font-family:'DM Mono',monospace;">
+                        <i class="fa-solid fa-plus"></i> ADD STOCK
+                    </button>
+                    <button onclick="refreshWatchlistPrices()" class="flex items-center gap-x-1.5 border font-semibold px-4 py-2.5 text-xs" style="background:rgba(0,200,150,0.08); border-color:rgba(0,200,150,0.2); border-radius:8px; color:#00C896; font-family:'DM Mono',monospace;" onmouseenter="this.style.background='rgba(0,200,150,0.15)'" onmouseleave="this.style.background='rgba(0,200,150,0.08)'">
+                        <i class="fa-solid fa-rotate-right" id="wl-refresh-icon"></i> REFRESH
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary cards -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Watching</p>
+                    <p id="wl-kpi-count" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#F0B429;">0</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">stocks tracked</p>
+                </div>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Triggered</p>
+                    <p id="wl-kpi-triggered" class="kpi-value" style="font-size:2rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:#00C896;">0</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">at buy price</p>
+                </div>
+                <div class="glass" style="border-radius:12px; padding:20px;">
+                    <p style="font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace; text-transform:uppercase;">Last Refresh</p>
+                    <p id="wl-kpi-lastrefresh" class="kpi-value" style="font-size:1.1rem; font-weight:700; margin-top:8px; font-family:'Syne',sans-serif; color:rgba(255,255,255,0.6);">--</p>
+                    <p style="font-size:11px; margin-top:4px; color:rgba(255,255,255,0.35); font-family:'DM Mono',monospace;">auto every 5 min</p>
+                </div>
+            </div>
+
+            <!-- Watchlist table -->
+            <div class="glass" style="border-radius:12px; overflow-x:auto;">
+                <table class="w-full text-left" style="min-width:800px;">
+                    <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Stock</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Live Price</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Target Buy Price</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Distance</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Status</th>
+                        <th class="py-4 px-5" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Notes</th>
+                        <th class="py-4 px-5 text-right" style="font-weight:500; color:rgba(255,255,255,0.45); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-family:'DM Mono',monospace;">Actions</th>
+                    </tr></thead>
+                    <tbody id="watchlist-table-body" style="font-size:13px; font-family:'DM Mono',monospace;">
+                        <tr id="wl-empty-row"><td colspan="7" class="py-12 text-center" style="color:rgba(255,255,255,0.25); font-size:13px;">No stocks on watchlist yet — click <strong style="color:#F0B429;">ADD STOCK</strong> to start tracking</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-[10px] text-white/30 mt-3 text-center">Prices auto-refresh every 5 minutes while this page is open. Browser notifications fire when CMP ≤ your target buy price.</p>
+        </div>
+
         </div><!-- /main-content -->
 </div><!-- /layout -->
 
 
 <!-- ===================== MODALS ===================== -->
 
-<!-- ADD INVESTMENT -->
-<div id="add-modal" class="hidden modal-overlay" onclick="overlayClose(event,'add-modal')">
+<!-- ADD WATCHLIST STOCK -->
+<div id="add-watchlist-modal" class="hidden modal-overlay" onclick="closeModal('add-watchlist-modal')">
+    <div onclick="event.stopPropagation()" style="background:#0D1320; border:1px solid rgba(240,180,41,0.2); border-radius:14px; padding:28px; width:100%; max-width:420px;">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="heading-font text-2xl" style="color:#F0F2F8;">Add to Watchlist</h3>
+            <button onclick="closeModal('add-watchlist-modal')" class="text-white/50 hover:text-white text-xl w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="label-sm">Ticker Symbol</label>
+                <div class="flex gap-2 mt-1">
+                    <input id="wl-ticker" type="text" placeholder="e.g. INFY, HDFCBANK" class="inp flex-1 uppercase">
+                    <button onclick="fetchWatchlistCmp()" class="text-[10px] bg-[#00C896]/20 hover:bg-[#00C896]/40 text-[#00C896] border border-emerald-400/30 px-3 rounded-lg font-semibold flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-bolt text-[9px]"></i> FETCH</button>
+                </div>
+            </div>
+            <div>
+                <label class="label-sm">Current Market Price – CMP (₹)</label>
+                <input id="wl-cmp" type="number" step="0.01" placeholder="Auto-fetched or enter manually" class="inp mt-1">
+                <p id="wl-fetch-status" class="text-[10px] text-white/40 mt-1 hidden"></p>
+            </div>
+            <div>
+                <label class="label-sm">Target Buy Price – Trigger at ₹ or below</label>
+                <input id="wl-target" type="number" step="0.01" placeholder="e.g. 1400.00" class="inp mt-1">
+                <p class="text-[10px] text-white/40 mt-1">You'll get notified when CMP ≤ this price</p>
+            </div>
+            <div>
+                <label class="label-sm">Notes <span class="text-white/40">(optional)</span></label>
+                <input id="wl-notes" type="text" placeholder="e.g. Buy on dip, Q4 results pending" class="inp mt-1">
+            </div>
+        </div>
+        <button onclick="saveWatchlistStock()" class="btn-primary w-full mt-6 py-3 text-sm" style="border-radius:10px; font-family:'DM Mono',monospace; letter-spacing:0.08em;">
+            <i class="fa-solid fa-plus mr-2"></i> ADD TO WATCHLIST
+        </button>
+    </div>
+</div>
+<div id="add-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Add Investment</h3>
@@ -846,7 +948,7 @@
 </div>
 
 <!-- BUY MORE -->
-<div id="buy-modal" class="hidden modal-overlay" onclick="overlayClose(event,'buy-modal')">
+<div id="buy-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-sm" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Buy More</h3>
@@ -870,7 +972,7 @@
 </div>
 
 <!-- EDIT -->
-<div id="edit-modal" class="hidden modal-overlay" onclick="overlayClose(event,'edit-modal')">
+<div id="edit-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Edit Entry</h3>
@@ -959,7 +1061,7 @@
 </div>
 
 <!-- SAVINGS -->
-<div id="savings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'savings-modal')">
+<div id="savings-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-sm" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Update Savings</h3>
@@ -976,7 +1078,7 @@
 </div>
 
 <!-- SALARY ENTRY -->
-<div id="salary-modal" class="hidden modal-overlay" onclick="overlayClose(event,'salary-modal')">
+<div id="salary-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between p-7 pb-4 shrink-0">
             <h3 class="heading-font text-2xl" id="salary-modal-title">Add Monthly Entry</h3>
@@ -1040,7 +1142,7 @@
 </div>
 
 <!-- EMAIL SETTINGS MODAL -->
-<div id="email-settings-modal" class="hidden modal-overlay" onclick="overlayClose(event,'email-settings-modal')">
+<div id="email-settings-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" w-full max-w-md flex flex-col" style="max-height:90vh;" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between p-7 pb-4 shrink-0">
             <div>
@@ -1125,7 +1227,7 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
 </div>
 
 <!-- REMINDER -->
-<div id="reminder-modal" class="hidden modal-overlay" onclick="overlayClose(event,'reminder-modal')">
+<div id="reminder-modal" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] style="border: 1px solid rgba(240,180,41,0.15); border-radius:14px;" p-7 w-full max-w-md" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-5">
             <h3 class="heading-font text-2xl">Monthly Review</h3>
@@ -1152,8 +1254,31 @@ Stay on track. Log your salary, expenses & investments for {{month_name}}.
     </div>
 </div>
 
+<!-- ===================== CUSTOM CONFIRM MODAL ===================== -->
+<div id="confirm-modal" class="hidden modal-overlay" style="z-index:2000;">
+    <div class="bg-[#0D1320] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onclick="event.stopPropagation()" style="border:1px solid rgba(240,180,41,0.18);">
+        <div class="px-7 pt-7 pb-2 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(255,71,87,0.12); border:1px solid rgba(255,71,87,0.25);">
+                <i class="fa-solid fa-trash-can" style="color:#FF4757; font-size:15px;"></i>
+            </div>
+            <div>
+                <p class="heading-font text-base font-semibold text-white mb-1">Are you sure?</p>
+                <p id="confirm-modal-msg" class="text-sm" style="color:rgba(255,255,255,0.5); line-height:1.5;"></p>
+            </div>
+        </div>
+        <div class="flex gap-3 px-7 py-5">
+            <button onclick="closeModal('confirm-modal')" class="flex-1 py-2.5 rounded-xl text-sm font-medium" style="background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.08);">
+                Cancel
+            </button>
+            <button id="confirm-modal-ok" class="flex-1 py-2.5 rounded-xl text-sm font-semibold" style="background:rgba(255,71,87,0.15); color:#FF4757; border:1px solid rgba(255,71,87,0.3);">
+                <i class="fa-solid fa-trash-can mr-1.5"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ===================== KPI DRAWER MODAL ===================== -->
-<div id="kpi-drawer" class="hidden modal-overlay" onclick="if(event.target===this)closeModal('kpi-drawer')">
+<div id="kpi-drawer" class="hidden modal-overlay" >
     <div class="bg-[#0D1320] border border-white/15 rounded-xl w-full max-w-lg shadow-2xl" onclick="event.stopPropagation()" style="max-height:88vh;display:flex;flex-direction:column;">
         <!-- Header -->
         <div class="flex items-center justify-between px-7 pt-6 pb-4 shrink-0 border-b border-white/10">
@@ -1238,6 +1363,7 @@ function loadFromLocalStorage() {
         if (!Array.isArray(financeData.bonds))       financeData.bonds       = [];
         if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
         if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+        if (!Array.isArray(financeData.watchlist))     financeData.watchlist     = [];
         if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
             financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
         }
@@ -1503,9 +1629,9 @@ function updateKPIs() {
     const savBal = document.getElementById('savings-balance-display');
     if (savBal) savBal.textContent = `₹${financeData.savings.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
 
-    // FIX: Update the LAST benchmark point in-place using % gain from baseline (no bonds).
+    // Update the LAST portfolio snapshot point in-place using current % gain from baseline
     const bd = financeData.benchmarkData;
-    if (bd.portfolio.length > 0 && bd.basePortfolio) {
+    if (bd.portfolio.length > 0 && bd.basePortfolio && financeData.equityPortfolio > 0) {
         bd.portfolio[bd.portfolio.length - 1] = +((financeData.equityPortfolio / bd.basePortfolio - 1) * 100).toFixed(2);
     }
 
@@ -1516,22 +1642,124 @@ function updateKPIs() {
 }
 
 // ================================================================
-//  CHARTS  ← FIX: refreshGrowthChart only updates data, never appends
+//  CHARTS
 // ================================================================
+
+// Cached live benchmark history { labels[], nifty[], sensex[], gold[] }
+let _liveBenchmarkCache = null;
+let _liveBenchmarkFetching = false;
+
+async function _fetchHistoricalPct(symbol, rangeStr = '1y', intervalStr = '1mo') {
+    // Fetch Yahoo Finance chart data and return normalized % arrays + labels
+    const syms = symbol.includes('.') ? [symbol] : [symbol + '.NS', symbol];
+    for (const sym of syms) {
+        for (const host of ['query1', 'query2']) {
+            try {
+                const url = `https://${host}.finance.yahoo.com/v8/finance/chart/${sym}?interval=${intervalStr}&range=${rangeStr}`;
+                const text = await _fetchRaw(url, 10000);
+                const json = JSON.parse(text);
+                const result = json?.chart?.result?.[0];
+                if (!result) continue;
+                const timestamps = result.timestamp;
+                const closes = result.indicators?.quote?.[0]?.close;
+                if (!timestamps || !closes || timestamps.length < 2) continue;
+
+                // Build clean pairs, skip nulls
+                const pairs = timestamps.map((t, i) => ({ t, c: closes[i] })).filter(p => p.c != null);
+                if (pairs.length < 2) continue;
+
+                const base = pairs[0].c;
+                const labels = pairs.map(p => {
+                    const d = new Date(p.t * 1000);
+                    return d.toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+                });
+                const pcts = pairs.map(p => +((p.c / base - 1) * 100).toFixed(2));
+                return { labels, pcts };
+            } catch {}
+        }
+    }
+    return null;
+}
+
+async function loadLiveBenchmarks() {
+    if (_liveBenchmarkFetching) return;
+    _liveBenchmarkFetching = true;
+    try {
+        const [n, s, g] = await Promise.allSettled([
+            _fetchHistoricalPct('^NSEI',  '1y', '1mo'),
+            _fetchHistoricalPct('^BSESN', '1y', '1mo'),
+            _fetchHistoricalPct('GC=F',   '1y', '1mo')
+        ]);
+
+        const niftyData  = n.status === 'fulfilled' ? n.value : null;
+        const sensexData = s.status === 'fulfilled' ? s.value : null;
+        const goldData   = g.status === 'fulfilled' ? g.value : null;
+
+        // Use Nifty labels as master timeline (most reliable)
+        const master = niftyData || sensexData || goldData;
+        if (!master) { _liveBenchmarkFetching = false; return; }
+
+        _liveBenchmarkCache = {
+            labels: master.labels,
+            nifty:  niftyData?.pcts  || master.labels.map(() => null),
+            sensex: sensexData?.pcts || master.labels.map(() => null),
+            gold:   goldData?.pcts   || master.labels.map(() => null),
+        };
+
+        refreshGrowthChart();
+    } catch(e) {}
+    _liveBenchmarkFetching = false;
+}
+
 function refreshGrowthChart() {
     if (!growthChart) return;
     const bd = financeData.benchmarkData;
-    const empty = !bd.dates || bd.dates.length < 2;
+    const bm = _liveBenchmarkCache;
 
-    // Show/hide empty state overlay
+    // ── Build chart data ──
+    let labels, niftyData, sensexData, goldData, portfolioData;
+
+    if (bm) {
+        // Use live historical timeline for benchmarks
+        labels     = bm.labels;
+        niftyData  = bm.nifty;
+        sensexData = bm.sensex;
+        goldData   = bm.gold;
+
+        // Overlay portfolio snapshots: match each snapshot label to nearest index in live timeline
+        // Fill with null (sparse) so portfolio only shows dots at snapshot months
+        portfolioData = labels.map(() => null);
+        bd.dates.forEach((snapshotLabel, i) => {
+            const idx = labels.findIndex(l => l === snapshotLabel);
+            if (idx >= 0) {
+                portfolioData[idx] = bd.portfolio[i];
+            } else {
+                // Append at end if label not found in live timeline
+                labels.push(snapshotLabel);
+                niftyData.push(null);
+                sensexData.push(null);
+                goldData.push(null);
+                portfolioData.push(bd.portfolio[i]);
+            }
+        });
+    } else {
+        // Fallback: only show snapshot data
+        labels        = bd.dates || [];
+        niftyData     = bd.nifty50 || [];
+        sensexData    = bd.sensex  || [];
+        goldData      = bd.gold    || [];
+        portfolioData = bd.portfolio || [];
+    }
+
+    const empty = labels.length === 0;
     let overlay = document.getElementById('growth-chart-empty');
     if (overlay) overlay.style.display = empty ? 'flex' : 'none';
 
-    growthChart.data.labels               = [...(bd.dates || [])];
-    growthChart.data.datasets[0].data     = [...(bd.portfolio || [])];
-    growthChart.data.datasets[1].data     = [...(bd.nifty50   || [])];
-    growthChart.data.datasets[2].data     = [...(bd.sensex    || [])];
-    growthChart.data.datasets[3].data     = [...(bd.gold      || [])];
+    growthChart.data.labels               = [...labels];
+    growthChart.data.datasets[0].data     = [...portfolioData];
+    growthChart.data.datasets[1].data     = [...niftyData];
+    growthChart.data.datasets[2].data     = [...sensexData];
+    growthChart.data.datasets[3].data     = [...goldData];
     growthChart.update('none');
 }
 
@@ -1574,6 +1802,7 @@ function navigateTo(id) {
         if (expenseChart) { expenseChart.destroy();  expenseChart = null; }
         setTimeout(() => { initSalaryChart(); refreshSalaryChart(); initExpenseChart(); refreshExpenseChart(); }, 60);
     }
+    if (id === 12) renderWatchlist();
     // Overview charts refresh automatically via refreshGrowthChart/refreshAllocChart in updateKPIs
     // (charts were already updated when data changed, so no extra call needed on tab switch)
 }
@@ -1588,6 +1817,20 @@ function closeModal(id) {
         prevTrendChart.destroy();
         prevTrendChart = null;
     }
+}
+
+// Custom in-app confirm dialog — replaces browser confirm()
+function showConfirm(message, onConfirm, { label = 'Delete', icon = 'fa-trash-can' } = {}) {
+    document.getElementById('confirm-modal-msg').textContent = message;
+    const okBtn = document.getElementById('confirm-modal-ok');
+    okBtn.innerHTML = `<i class="fa-solid ${icon} mr-1.5"></i> ${label}`;
+    const fresh = okBtn.cloneNode(true); // remove old listeners
+    okBtn.parentNode.replaceChild(fresh, okBtn);
+    fresh.addEventListener('click', () => {
+        closeModal('confirm-modal');
+        onConfirm();
+    });
+    document.getElementById('confirm-modal').classList.remove('hidden');
 }
 function overlayClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
@@ -1792,22 +2035,25 @@ function saveEdit() {
 }
 
 function deleteHolding(i) {
-    if (!confirm(`Delete ${financeData.holdings[i].ticker}?`)) return;
-    financeData.holdings.splice(i, 1);
-    renderHoldings(); updateKPIs();
-    showToast('🗑️ Holding deleted and CSV updated.');
+    showConfirm(`Remove ${financeData.holdings[i].ticker} from your portfolio?`, () => {
+        financeData.holdings.splice(i, 1);
+        renderHoldings(); updateKPIs();
+        showToast('🗑️ Holding deleted.');
+    });
 }
 function deleteBond(i) {
-    if (!confirm(`Delete "${financeData.bonds[i].name}"?`)) return;
-    financeData.bonds.splice(i, 1);
-    renderBonds(); updateKPIs();
-    showToast('🗑️ Bond deleted and CSV updated.');
+    showConfirm(`Remove "${financeData.bonds[i].name}" from bonds?`, () => {
+        financeData.bonds.splice(i, 1);
+        renderBonds(); updateKPIs();
+        showToast('🗑️ Bond deleted.');
+    });
 }
 function deleteMF(i) {
-    if (!confirm(`Delete "${financeData.mutualFunds[i].name}"?`)) return;
-    financeData.mutualFunds.splice(i, 1);
-    renderMutualFunds(); updateKPIs();
-    showToast('🗑️ Mutual fund deleted and CSV updated.');
+    showConfirm(`Remove "${financeData.mutualFunds[i].name}" from mutual funds?`, () => {
+        financeData.mutualFunds.splice(i, 1);
+        renderMutualFunds(); updateKPIs();
+        showToast('🗑️ Mutual fund deleted.');
+    });
 }
 
 function editSavings() {
@@ -1869,14 +2115,12 @@ const _PROXIES = [
     t => `https://thingproxy.freeboard.io/fetch/${t}`,
 ];
 
-async function _fetchRaw(url, timeoutMs = 9000) {
-    // Try direct first (works on hosted domain)
-    try { return await _tryFetch(url, 6000); } catch {}
-    // Then proxies
-    for (const mkP of _PROXIES) {
-        try { return await _tryFetch(mkP(url), timeoutMs); } catch {}
-    }
-    throw new Error('all failed: ' + url);
+async function _fetchRaw(url, timeoutMs = 7000) {
+    // Race direct + all proxies simultaneously — first success wins
+    return Promise.any([
+        _tryFetch(url, timeoutMs),
+        ..._PROXIES.map(mk => _tryFetch(mk(url), timeoutMs))
+    ]);
 }
 
 // ── Google Finance parsers ──
@@ -2024,83 +2268,57 @@ function _parseETMoneyDetail(text, cmp) {
     throw new Error('no dividend in ETMoney detail');
 }
 
-// ── Master price fetch: Google Finance first, ETMoney, then Yahoo fallback ──
+// ── Master price fetch: race all sources simultaneously ──
 async function fetchStockPrice(rawTicker) {
-    const ticker  = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
-    const exchanges = ['NSE', 'BSE'];
+    const ticker   = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
+    const isIndex  = rawTicker.startsWith('^') || rawTicker.includes('=F');
+    const attempts = [];
 
-    // ── 1. Google Finance HTML scrape (most accurate for Indian stocks) ──
-    for (const ex of exchanges) {
-        try {
-            const gUrl = `https://www.google.com/finance/quote/${ticker}:${ex}`;
-            const html = await _fetchRaw(gUrl, 10000);
-            const unwrapped = _unwrap(html);
-            const price = _parseGoogleFinanceHTML(unwrapped);
-            if (price > 0) {
+    if (!isIndex) {
+        // Google Finance – NSE and BSE in parallel
+        for (const ex of ['NSE', 'BSE']) {
+            attempts.push((async () => {
+                const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:${ex}`, 8000);
+                const unwrapped = _unwrap(html);
+                const price = _parseGoogleFinanceHTML(unwrapped);
+                if (price <= 0) throw new Error('no price');
                 const nameMatch = unwrapped.match(/<title>([^(]+)\(/);
-                const name = nameMatch ? nameMatch[1].trim() : ticker;
-                return { price, name, source: `Google Finance (${ex})`, sym: ticker };
-            }
-        } catch {}
+                return { price, name: nameMatch ? nameMatch[1].trim() : ticker, source: `Google Finance (${ex})`, sym: ticker };
+            })());
+        }
+
+        // ETMoney – NSE and BSE in parallel
+        for (const ex of ['NSE', 'BSE']) {
+            attempts.push((async () => {
+                const text = await _fetchRaw(`https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=${ex}`, 7000);
+                const r = _parseETMoneySearch(text, ticker);
+                if (r.price <= 0) throw new Error('no price');
+                return r;
+            })());
+        }
     }
 
-    // ── 2. ETMoney API (great for Indian stocks) ──
-    try {
-        const etSearchUrl = `https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=NSE`;
-        const etText = await _fetchRaw(etSearchUrl, 8000);
-        const etResult = _parseETMoneySearch(etText, ticker);
-        if (etResult.price > 0) return etResult;
-    } catch {}
-    // ETMoney BSE fallback
-    try {
-        const etSearchBse = `https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=BSE`;
-        const etText = await _fetchRaw(etSearchBse, 8000);
-        const etResult = _parseETMoneySearch(etText, ticker);
-        if (etResult.price > 0) return etResult;
-    } catch {}
-    // ETMoney stock detail page fallback
-    try {
-        const etDetailUrl = `https://www.etmoney.com/stocks/${ticker.toLowerCase()}/overview`;
-        const etHtml = await _fetchRaw(etDetailUrl, 9000);
-        const etHtmlUnwrapped = _unwrap ? _unwrap(etHtml) : etHtml;
-        // Parse price from ETMoney detail page
-        const priceMatch = etHtmlUnwrapped.match(/"currentPrice"\s*:\s*([\d.]+)/) ||
-                           etHtmlUnwrapped.match(/"ltp"\s*:\s*([\d.]+)/) ||
-                           etHtmlUnwrapped.match(/class="[^"]*stock-price[^"]*"[^>]*>([\d,.]+)/);
-        if (priceMatch) {
-            const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-            if (price > 0) return { price, name: ticker, source: 'ETMoney Detail', sym: ticker };
-        }
-    } catch {}
-
-    // ── 3. Google Finance search API ──
-    try {
-        const gSearch2 = `https://www.google.com/finance/search?q=${encodeURIComponent(ticker + ' NSE')}&hl=en`;
-        const html2 = await _fetchRaw(gSearch2, 8000);
-        const price = _parseGoogleFinanceHTML(_unwrap(html2));
-        if (price > 0) return { price, name: ticker, source: 'Google Finance Search', sym: ticker };
-    } catch {}
-
-    // ── 4. Yahoo Finance fallbacks ──
+    // Yahoo Finance – v7, v8 chart, across .NS/.BO and query1/query2, all in parallel
     const yahooSyms = rawTicker.includes('.') ? [rawTicker] : [ticker + '.NS', ticker + '.BO'];
     for (const ySym of yahooSyms) {
-        const yEndpoints = [
-            [`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, _parseYahooV7],
-            [`https://query2.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, _parseYahooV7],
-            [`https://query1.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, _parseYahooChart],
-            [`https://query2.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, _parseYahooChart],
-            [`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=price,summaryDetail`, _parseYahooSummary],
-        ];
-        for (const [url, fn] of yEndpoints) {
-            try {
-                const text = await _fetchRaw(url, 9000);
-                const result = fn(text);
-                return { ...result, source: 'Yahoo Finance', sym: ySym };
-            } catch {}
+        for (const host of ['query1', 'query2']) {
+            attempts.push((async () => {
+                const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, 7000);
+                const r = _parseYahooV7(text);
+                if (!r.price || r.price <= 0) throw new Error('no price');
+                return { ...r, source: 'Yahoo Finance', sym: ySym };
+            })());
+            attempts.push((async () => {
+                const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, 7000);
+                const r = _parseYahooChart(text);
+                if (!r.price || r.price <= 0) throw new Error('no price');
+                return { ...r, source: 'Yahoo Finance', sym: ySym };
+            })());
         }
     }
 
-    throw new Error('Price not found for ' + rawTicker);
+    if (!attempts.length) throw new Error('No fetch strategies for ' + rawTicker);
+    return Promise.any(attempts);
 }
 
 // Keep old name as alias so all callers work unchanged
@@ -2171,98 +2389,79 @@ async function fetchCmpForAdd() {
     btn.disabled  = false;
 }
 
-// Fetch dividend info — Google Finance → Yahoo quoteSummary → Yahoo chart events → Screener.in → ETMoney page scrape
+// Fetch dividend info — race all sources simultaneously
 async function _fetchDividendForTicker(rawTicker, cmp) {
     const ticker = rawTicker.replace(/\.NS|\.BO/gi, '').toUpperCase();
     const nsSym  = ticker + '.NS';
     const boSym  = ticker + '.BO';
+    const attempts = [];
 
-    // ── 1. Google Finance (NSE then BSE) ──
+    // Google Finance – NSE and BSE
     for (const ex of ['NSE', 'BSE']) {
-        try {
-            const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:${ex}`, 8000);
-            const div  = _parseGoogleFinanceDividend(_unwrap ? _unwrap(html) : html);
+        attempts.push((async () => {
+            const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:${ex}`, 7000);
+            const div  = _parseGoogleFinanceDividend(_unwrap(html));
             if (div.annualAmount > 0) return div;
             if (div.yieldDecimal > 0 && cmp > 0)
                 return { annualAmount: +(div.yieldDecimal * cmp).toFixed(2), yieldDecimal: div.yieldDecimal };
-        } catch {}
+            throw new Error('no div');
+        })());
     }
 
-    // ── 2. Yahoo Finance quoteSummary — trailingAnnualDividendRate (best for NSE stocks) ──
+    // Yahoo Finance quoteSummary – .NS and .BO × query1/query2
     for (const ySym of [nsSym, boSym]) {
         for (const host of ['query1', 'query2']) {
-            try {
-                const url  = `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=summaryDetail`;
-                const text = await _fetchRaw(url, 9000);
+            attempts.push((async () => {
+                const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=summaryDetail`, 7000);
                 const sd   = JSON.parse(_unwrap(text))?.quoteSummary?.result?.[0]?.summaryDetail;
                 const rate = sd?.trailingAnnualDividendRate?.raw || 0;
                 const yld  = sd?.trailingAnnualDividendYield?.raw || 0;
-                if (rate > 0) return { annualAmount: +rate.toFixed(2), yieldDecimal: yld > 0 ? yld : (cmp > 0 ? rate/cmp : 0) };
+                if (rate > 0) return { annualAmount: +rate.toFixed(2), yieldDecimal: yld > 0 ? yld : (cmp > 0 ? rate / cmp : 0) };
                 if (yld  > 0 && cmp > 0) return { annualAmount: +(yld * cmp).toFixed(2), yieldDecimal: yld };
-            } catch {}
+                throw new Error('no div');
+            })());
         }
     }
 
-    // ── 3. Yahoo Finance chart dividend events (last 12m sum) ──
+    // Yahoo Finance chart dividend events – .NS and .BO × query1/query2
     for (const ySym of [nsSym, boSym]) {
         for (const host of ['query1', 'query2']) {
-            try {
-                const url  = `https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=2y&events=div`;
-                const text = await _fetchRaw(url, 9000);
-                const evts = JSON.parse(_unwrap(text))?.chart?.result?.[0]?.events?.dividends || {};
+            attempts.push((async () => {
+                const text  = await _fetchRaw(`https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=2y&events=div`, 7000);
+                const evts  = JSON.parse(_unwrap(text))?.chart?.result?.[0]?.events?.dividends || {};
                 const cutoff = Date.now() / 1000 - 365 * 86400;
                 const total  = Object.values(evts).filter(d => d.date >= cutoff).reduce((s, d) => s + (d.amount || 0), 0);
-                if (total > 0) return { annualAmount: +total.toFixed(2), yieldDecimal: cmp > 0 ? total / cmp : 0 };
-            } catch {}
+                if (total <= 0) throw new Error('no div');
+                return { annualAmount: +total.toFixed(2), yieldDecimal: cmp > 0 ? total / cmp : 0 };
+            })());
         }
     }
 
-    // ── 4. Screener.in — reliable Indian stock dividend yield source ──
-    try {
-        const scrHtml = await _fetchRaw(`https://www.screener.in/company/${ticker}/consolidated/`, 9000);
-        const unwrapped = _unwrap ? _unwrap(scrHtml) : scrHtml;
-        // Screener shows "Dividend Yield  6.14 %" in key ratios
-        const dyMatch = unwrapped.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
-        if (dyMatch) {
+    // Screener.in – consolidated and standalone
+    for (const path of [`${ticker}/consolidated/`, `${ticker}/`]) {
+        attempts.push((async () => {
+            const html  = await _fetchRaw(`https://www.screener.in/company/${path}`, 7000);
+            const dyMatch = (_unwrap(html)).match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
+            if (!dyMatch) throw new Error('no div');
             const yieldDec = parseFloat(dyMatch[1]) / 100;
-            if (yieldDec > 0 && cmp > 0)
-                return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
-        }
-    } catch {}
-    // Try standalone Screener page too
-    try {
-        const scrHtml2 = await _fetchRaw(`https://www.screener.in/company/${ticker}/`, 9000);
-        const unwrapped2 = _unwrap ? _unwrap(scrHtml2) : scrHtml2;
-        const dyMatch2 = unwrapped2.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
-        if (dyMatch2) {
-            const yieldDec = parseFloat(dyMatch2[1]) / 100;
-            if (yieldDec > 0 && cmp > 0)
-                return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
-        }
-    } catch {}
+            if (yieldDec <= 0 || cmp <= 0) throw new Error('no div');
+            return { annualAmount: +(yieldDec * cmp).toFixed(2), yieldDecimal: yieldDec };
+        })());
+    }
 
-    // ── 5. ETMoney stock page scrape (HTML, no private API) ──
-    try {
-        const etHtml = await _fetchRaw(`https://www.etmoney.com/stocks/${ticker.toLowerCase()}/overview`, 9000);
-        const etDiv  = _parseETMoneyDetail(etHtml, cmp);
-        if (etDiv.annualAmount > 0) return etDiv;
-    } catch {}
+    // ETMoney page scrape
+    attempts.push((async () => {
+        const html = await _fetchRaw(`https://www.etmoney.com/stocks/${ticker.toLowerCase()}/overview`, 7000);
+        const etDiv = _parseETMoneyDetail(html, cmp);
+        if (etDiv.annualAmount <= 0) throw new Error('no div');
+        return etDiv;
+    })());
 
-    // ── 6. ETMoney search widget (public autocomplete endpoint) ──
     try {
-        const etText = await _fetchRaw(
-            `https://www.etmoney.com/api/stocks/search?q=${encodeURIComponent(ticker)}`, 7000
-        );
-        const etResult = _parseETMoneySearch(etText, ticker);
-        if (etResult.annualDividend > 0)
-            return { annualAmount: etResult.annualDividend, yieldDecimal: cmp > 0 ? etResult.annualDividend / cmp : 0 };
-        if (etResult.dividendYield > 0 && cmp > 0) {
-            const y = etResult.dividendYield > 1 ? etResult.dividendYield / 100 : etResult.dividendYield;
-            return { annualAmount: +(y * cmp).toFixed(2), yieldDecimal: y };
-        }
-    } catch {}
-
-    return { annualAmount: 0, yieldDecimal: 0 };
+        return await Promise.any(attempts);
+    } catch {
+        return { annualAmount: 0, yieldDecimal: 0 };
+    }
 }
 
 async function fetchNavForAdd() {
@@ -2346,148 +2545,42 @@ async function applyNavFromScheme(schemeCode, schemeName, statusEl) {
 }
 
 // ================================================================
-//  LIVE PRICE REFRESH  (Yahoo Finance multi-proxy) + Dividend Detection
+//  LIVE PRICE REFRESH  — price + dividends fetched in parallel per holding
 // ================================================================
 async function refreshLivePrices() {
     const icon = document.getElementById('refresh-icon');
     icon.classList.add('fa-spin');
     showToast('⏳ Fetching live NSE prices + dividend history…');
     let updated = 0;
+
     await Promise.allSettled(financeData.holdings.map(async h => {
-        try {
-            const { price, sym } = await fetchYahooPrice(h.ticker);
+        const baseTicker = h.ticker.replace(/\.NS$|\.BO$/i, '');
+
+        // Fetch price AND dividends simultaneously using stored CMP for dividend calc
+        const [priceRes, divRes] = await Promise.allSettled([
+            fetchStockPrice(h.ticker),
+            _fetchDividendForTicker(baseTicker, h.cmp || 0)
+        ]);
+
+        // Apply price
+        if (priceRes.status === 'fulfilled') {
+            const { price } = priceRes.value;
             if (price && price > 0) {
                 h.cmp          = +price.toFixed(2);
                 h.currentValue = +(h.qty * h.cmp).toFixed(2);
                 updated++;
             }
+        }
 
-            // --- Dividend fetch: Google Finance primary, Yahoo chart fallback ---
-            const baseTicker = h.ticker.replace(/\.NS$|\.BO$/i, '');
-            const nsSym      = h.ticker.includes('.') ? h.ticker : baseTicker + '.NS';
-            let annualDiv    = 0;
-            let divYieldPct  = 0;
+        // Apply dividend (recalculate annualAmount if fetched with stale CMP)
+        if (divRes.status === 'fulfilled') {
+            const { annualAmount, yieldDecimal } = divRes.value;
+            let annualDiv   = annualAmount;
+            let divYieldPct = yieldDecimal;
 
-            // Strategy 1: Google Finance page — parse quarterly dividend or yield
-            try {
-                for (const ex of ['NSE', 'BSE']) {
-                    const gUrl = `https://www.google.com/finance/quote/${baseTicker}:${ex}`;
-                    const text = await _fetchRaw(gUrl, 9000);
-                    const html = _unwrap(text);
-                    const { annualAmount, yieldDecimal } = _parseGoogleFinanceDividend(html);
-                    if (annualAmount > 0) {
-                        annualDiv   = annualAmount;
-                        divYieldPct = h.cmp > 0 ? annualAmount / h.cmp : 0;
-                        break;
-                    }
-                    if (yieldDecimal > 0 && h.cmp > 0) {
-                        divYieldPct = yieldDecimal;
-                        annualDiv   = +(yieldDecimal * h.cmp).toFixed(2);
-                        break;
-                    }
-                }
-            } catch {}
-
-            // Strategy 2: Yahoo Finance chart events (events=div, daily, 2y)
-            if (!annualDiv) {
-                try {
-                    for (const ySym of [nsSym, baseTicker + '.BO']) {
-                        for (const host of ['query1', 'query2']) {
-                            try {
-                                const url  = `https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=2y&events=div`;
-                                const text = await _fetchRaw(url, 9000);
-                                const r    = JSON.parse(_unwrap(text));
-                                const evts = r?.chart?.result?.[0]?.events?.dividends || {};
-                                const cutoff = Date.now() / 1000 - 365 * 86400;
-                                const total  = Object.values(evts)
-                                    .filter(d => d.date >= cutoff)
-                                    .reduce((s, d) => s + (d.amount || 0), 0);
-                                if (total > 0) { annualDiv = +total.toFixed(2); break; }
-                            } catch {}
-                        }
-                        if (annualDiv) break;
-                    }
-                } catch {}
-            }
-
-            // Strategy 3: Yahoo Finance quoteSummary — trailingAnnualDividendRate + yield
-            if (!annualDiv) {
-                try {
-                    for (const ySym of [nsSym, baseTicker + '.BO']) {
-                        for (const host of ['query1', 'query2']) {
-                            try {
-                                const url  = `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/${ySym}?modules=summaryDetail`;
-                                const text = await _fetchRaw(url, 9000);
-                                const r    = JSON.parse(_unwrap(text));
-                                const sd   = r?.quoteSummary?.result?.[0]?.summaryDetail;
-                                const rate  = sd?.trailingAnnualDividendRate?.raw || 0;
-                                const yld   = sd?.trailingAnnualDividendYield?.raw || 0;
-                                if (rate > 0) {
-                                    annualDiv   = +rate.toFixed(2);
-                                    divYieldPct = yld > 0 ? yld : (h.cmp > 0 ? rate / h.cmp : 0);
-                                    break;
-                                }
-                                if (yld > 0 && h.cmp > 0) {
-                                    divYieldPct = yld;
-                                    annualDiv   = +(yld * h.cmp).toFixed(2);
-                                    break;
-                                }
-                            } catch {}
-                        }
-                        if (annualDiv) break;
-                    }
-                } catch {}
-            }
-
-            // Strategy 4: Screener.in — reliable Indian dividend yield
-            if (!annualDiv) {
-                for (const scrPath of [`${baseTicker}/consolidated/`, `${baseTicker}/`]) {
-                    try {
-                        const scrHtml = await _fetchRaw(`https://www.screener.in/company/${scrPath}`, 9000);
-                        const unwrapped = _unwrap ? _unwrap(scrHtml) : scrHtml;
-                        const dyMatch = unwrapped.match(/[Dd]ividend\s+[Yy]ield[^<\d]{0,40}([\d.]+)\s*%/);
-                        if (dyMatch) {
-                            const yieldDec = parseFloat(dyMatch[1]) / 100;
-                            if (yieldDec > 0 && h.cmp > 0) {
-                                divYieldPct = yieldDec;
-                                annualDiv   = +(yieldDec * h.cmp).toFixed(2);
-                                break;
-                            }
-                        }
-                    } catch {}
-                    if (annualDiv) break;
-                }
-            }
-
-            // Strategy 5: ETMoney stock overview page (HTML scrape, no private API)
-            if (!annualDiv) {
-                try {
-                    const etDetailHtml = await _fetchRaw(`https://www.etmoney.com/stocks/${baseTicker.toLowerCase()}/overview`, 9000);
-                    const etDiv = _parseETMoneyDetail(etDetailHtml, h.cmp);
-                    if (etDiv.annualAmount > 0) {
-                        annualDiv   = etDiv.annualAmount;
-                        divYieldPct = etDiv.yieldDecimal;
-                    }
-                } catch {}
-            }
-
-            // Strategy 6: ETMoney autocomplete/search endpoint (public widget)
-            if (!annualDiv) {
-                try {
-                    const etText = await _fetchRaw(
-                        `https://www.etmoney.com/api/stocks/search?q=${encodeURIComponent(baseTicker)}`, 7000
-                    );
-                    const etResult = _parseETMoneySearch(etText, baseTicker);
-                    if (etResult.annualDividend > 0) {
-                        annualDiv   = etResult.annualDividend;
-                        divYieldPct = h.cmp > 0 ? annualDiv / h.cmp : 0;
-                    } else if (etResult.dividendYield > 0 && h.cmp > 0) {
-                        const y = etResult.dividendYield > 1 ? etResult.dividendYield / 100 : etResult.dividendYield;
-                        divYieldPct = y;
-                        annualDiv   = +(y * h.cmp).toFixed(2);
-                    }
-                } catch {}
-            }
+            // If dividend was fetched as a yield and we now have a fresher CMP, recalculate
+            if (annualDiv <= 0 && divYieldPct > 0 && h.cmp > 0)
+                annualDiv = +(divYieldPct * h.cmp).toFixed(2);
 
             if (annualDiv > 0) {
                 h.isDividendStock = true;
@@ -2500,8 +2593,9 @@ async function refreshLivePrices() {
                 h.annualDividend  = 0;
                 h.dividendYield   = 0;
             }
-        } catch {}
+        }
     }));
+
     icon.classList.remove('fa-spin');
     const stockDivAnnual2 = +financeData.holdings.reduce((s,h) => s + ((h.annualDividend||0) > 0 ? (h.annualDividend||0)*h.qty : 0), 0).toFixed(2);
     const mfDivAnnual2    = +((financeData.mutualFunds||[]).reduce((s,m) => s + ((m.monthlyDiv||0)*12), 0)).toFixed(2);
@@ -2540,10 +2634,15 @@ async function addMonthlySnapshot() {
 
     // First snapshot sets the baseline (0% for all)
     if (bd.dates.length === 0) {
+        if (!portfolioNow || portfolioNow <= 0) {
+            showToast('⚠️ Cannot add snapshot — no portfolio value yet.');
+            return;
+        }
         bd.basePortfolio = portfolioNow;
         bd.baseNifty     = niftyNow;
         bd.baseSensex    = sensexNow;
         bd.baseGold      = goldNow;
+        bd.dates.push(label);
         bd.portfolio.push(0);
         bd.nifty50.push(0);
         bd.sensex.push(0);
@@ -2554,15 +2653,69 @@ async function addMonthlySnapshot() {
         const pctNifty     = (bd.baseNifty  && niftyNow)  ? +((niftyNow  / bd.baseNifty  - 1) * 100).toFixed(2) : bd.nifty50[bd.nifty50.length-1];
         const pctSensex    = (bd.baseSensex && sensexNow) ? +((sensexNow / bd.baseSensex - 1) * 100).toFixed(2) : bd.sensex[bd.sensex.length-1];
         const pctGold      = (bd.baseGold   && goldNow)   ? +((goldNow   / bd.baseGold   - 1) * 100).toFixed(2) : bd.gold[bd.gold.length-1];
+        bd.dates.push(label);
         bd.portfolio.push(pctPortfolio);
         bd.nifty50.push(pctNifty);
         bd.sensex.push(pctSensex);
         bd.gold.push(pctGold);
     }
-    bd.dates.push(label);
     refreshGrowthChart();
     saveToLocalStorage();
-    showToast(`✅ Snapshot "${label}" added — % gain from baseline recorded.`);
+    showToast(`✅ Snapshot "${label}" added — portfolio point recorded.`);
+    // Refresh live benchmarks to extend timeline if needed
+    _liveBenchmarkCache = null;
+    loadLiveBenchmarks();
+}
+
+// ================================================================
+//  RESET CHART BASELINE
+// ================================================================
+async function resetChartBaseline() {
+    showConfirm('This will clear all chart history and re-seed from today\'s data. Continue?', async () => {
+
+    // Wipe existing data
+    financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
+
+    if (!financeData.equityPortfolio || financeData.equityPortfolio <= 0) {
+        showToast('⚠️ No portfolio value yet — add holdings first.');
+        refreshGrowthChart();
+        return;
+    }
+
+    showToast('⏳ Re-seeding baseline…');
+    let niftyNow = null, sensexNow = null, goldNow = null;
+    try {
+        const [n, s, g] = await Promise.allSettled([
+            fetchStockPrice('^NSEI'),
+            fetchStockPrice('^BSESN'),
+            fetchStockPrice('GC=F')
+        ]);
+        niftyNow  = n.status === 'fulfilled' ? n.value?.price : null;
+        sensexNow = s.status === 'fulfilled' ? s.value?.price : null;
+        goldNow   = g.status === 'fulfilled' ? g.value?.price : null;
+    } catch(e) {}
+
+    const bd = financeData.benchmarkData;
+    const now = new Date();
+    const label = now.toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+
+    bd.basePortfolio = financeData.equityPortfolio;
+    bd.baseNifty     = niftyNow;
+    bd.baseSensex    = sensexNow;
+    bd.baseGold      = goldNow;
+    bd.dates.push(label);
+    bd.portfolio.push(0);
+    bd.nifty50.push(0);
+    bd.sensex.push(0);
+    bd.gold.push(0);
+
+    refreshGrowthChart();
+    saveToLocalStorage();
+    showToast('✅ Baseline reset — chart starts fresh from today.');
+    // Reload live benchmarks
+    _liveBenchmarkCache = null;
+    loadLiveBenchmarks();
+    }, { label: 'Reset', icon: 'fa-rotate-left' });
 }
 
 // ================================================================
@@ -2733,13 +2886,14 @@ function editSalaryEntry(i) {
 }
 
 function deleteSalaryEntry(i) {
-    if (!confirm(`Delete entry for ${financeData.salaryEntries[i].month}?`)) return;
-    financeData.salaryEntries.splice(i, 1);
-    renderSalaryTable();
-    refreshSalaryChart();
-    refreshExpenseChart();
-    saveToLocalStorage();
-    showToast('🗑️ Entry deleted.');
+    showConfirm(`Remove the entry for ${financeData.salaryEntries[i].month}?`, () => {
+        financeData.salaryEntries.splice(i, 1);
+        renderSalaryTable();
+        refreshSalaryChart();
+        refreshExpenseChart();
+        saveToLocalStorage();
+        showToast('🗑️ Entry deleted.');
+    });
 }
 
 function renderSalaryTable() {
@@ -2801,21 +2955,6 @@ function initSalaryChart() {
             datasets: [
                 { label: 'Salary',       data: entries.map(e=>e.salary),   backgroundColor: 'rgba(0,200,150,0.65)', borderRadius: 4, type:'bar' },
                 { label: 'Invested',     data: entries.map(e=>e.invested),  backgroundColor: 'rgba(240,180,41,0.7)',  borderRadius: 4, type:'bar' },
-                {
-                    label: 'Expense',
-                    data: entries.map(e=>e.expense),
-                    type: 'line',
-                    borderColor: '#FF6B35',
-                    backgroundColor: 'rgba(255,107,53,0.06)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#FF6B35',
-                    pointBorderColor: '#080C14',
-                    pointBorderWidth: 2,
-                    order: 0   // draw on top of bars
-                },
                 { label: 'Debt/EMI',     data: entries.map(e=>e.debt||0),   backgroundColor: 'rgba(255,71,87,0.6)',   borderRadius: 4, type:'bar' }
             ]
         },
@@ -2840,8 +2979,7 @@ function refreshSalaryChart() {
     salaryChart.data.labels            = entries.map(e=>e.month);
     salaryChart.data.datasets[0].data  = entries.map(e=>e.salary);
     salaryChart.data.datasets[1].data  = entries.map(e=>e.invested);
-    salaryChart.data.datasets[2].data  = entries.map(e=>e.expense);
-    salaryChart.data.datasets[3].data  = entries.map(e=>e.debt||0);
+    salaryChart.data.datasets[2].data  = entries.map(e=>e.debt||0);
     salaryChart.update('none');
     refreshExpenseChart();
 }
@@ -3567,29 +3705,34 @@ window.addEventListener('load', async () => {
                 {
                     label: '📈 Your Portfolio',
                     data: [...bd.portfolio],
-                    borderColor: '#F0B429', backgroundColor: 'rgba(240,180,41,0.06)',
-                    fill: true, tension: 0.35, borderWidth: 2.5,
-                    pointRadius: 4, pointBackgroundColor: '#F0B429', pointBorderColor: '#080C14', pointBorderWidth: 2
+                    borderColor: '#F0B429', backgroundColor: 'rgba(240,180,41,0.12)',
+                    fill: false, tension: 0.35, borderWidth: 2.5,
+                    spanGaps: false,
+                    pointRadius: 6, pointBackgroundColor: '#F0B429', pointBorderColor: '#080C14', pointBorderWidth: 2,
+                    pointHoverRadius: 8
                 },
                 {
                     label: 'Nifty 50',
                     data: [...(bd.nifty50 || bd.niftybees || [])],
                     borderColor: '#60a5fa', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
+                    tension: 0.35, borderWidth: 2, spanGaps: true,
+                    pointRadius: 0, pointHoverRadius: 4,
                     borderDash: [4,3]
                 },
                 {
                     label: 'Sensex',
                     data: [...(bd.sensex || [])],
                     borderColor: '#a78bfa', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
+                    tension: 0.35, borderWidth: 2, spanGaps: true,
+                    pointRadius: 0, pointHoverRadius: 4,
                     borderDash: [4,3]
                 },
                 {
                     label: 'Gold',
                     data: [...(bd.gold || [])],
                     borderColor: '#FF6B35', backgroundColor: 'transparent',
-                    tension: 0.35, borderWidth: 1.5, pointRadius: 3,
+                    tension: 0.35, borderWidth: 2, spanGaps: true,
+                    pointRadius: 0, pointHoverRadius: 4,
                     borderDash: [2,4]
                 },
 
@@ -3603,7 +3746,12 @@ window.addEventListener('load', async () => {
                 tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%` } }
             },
             scales: {
-                y: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%'} },
+                y: {
+                    suggestedMin: -20,
+                    suggestedMax: 20,
+                    grid:{color:'rgba(255,255,255,0.06)'},
+                    ticks:{color:'rgba(255,255,255,0.5)', callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%'}
+                },
                 x: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)'} }
             }
         }
@@ -3629,14 +3777,25 @@ window.addEventListener('load', async () => {
     updateKPIs();
     checkForMonthlyReminder();
     setTimeout(refreshLivePrices, 1500);
-    setTimeout(autoSeedBaselineIfEmpty, 2500); // seed baseline after prices load
+    setTimeout(loadLiveBenchmarks, 2000);   // load 1-year Nifty/Sensex/Gold history
+    setTimeout(autoSeedBaselineIfEmpty, 3000); // seed portfolio baseline after prices load
     loadEmailSettings();
     setTimeout(checkAndSendMonthEndReminder, 3000);
+
+    // Watchlist
+    if (!financeData.watchlist) financeData.watchlist = [];
+    updateNotifUI();
+    startWatchlistAutoRefresh();
+    // Initial watchlist price refresh after 4 seconds
+    if (financeData.watchlist.length > 0) setTimeout(refreshWatchlistPrices, 4000);
 });
 
 async function autoSeedBaselineIfEmpty() {
     const bd = financeData.benchmarkData;
     if (bd.dates && bd.dates.length > 0) return; // already has data
+
+    // Don't seed if no portfolio value yet — baseline of 0 causes division-by-zero later
+    if (!financeData.equityPortfolio || financeData.equityPortfolio <= 0) return;
 
     // Fetch real index prices silently
     let niftyNow = null, sensexNow = null, goldNow = null;
@@ -3654,7 +3813,7 @@ async function autoSeedBaselineIfEmpty() {
     const now = new Date();
     const label = now.toLocaleString('en-IN', { month: 'short', year: '2-digit' });
 
-    bd.basePortfolio = financeData.equityPortfolio || 0;
+    bd.basePortfolio = financeData.equityPortfolio;
     bd.baseNifty     = niftyNow;
     bd.baseSensex    = sensexNow;
     bd.baseGold      = goldNow;
@@ -3666,6 +3825,264 @@ async function autoSeedBaselineIfEmpty() {
 
     refreshGrowthChart();
     saveToLocalStorage();
+}
+
+// ================================================================
+//  BROWSER PUSH NOTIFICATIONS
+// ================================================================
+function requestNotifPermission() {
+    if (!('Notification' in window)) {
+        showToast('⚠️ Browser notifications not supported.');
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        showToast('✅ Notifications already enabled!');
+        updateNotifUI();
+        return;
+    }
+    Notification.requestPermission().then(perm => {
+        updateNotifUI();
+        if (perm === 'granted') {
+            showToast('✅ Browser notifications enabled!');
+            new Notification('QUALTRIM Alerts Active', {
+                body: "You'll be notified when watchlist stocks hit your target price and for monthly reminders.",
+                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%23F0B429"/><text x="16" y="22" font-size="20" text-anchor="middle" fill="%23080C14" font-family="sans-serif" font-weight="bold">Q</text></svg>'
+            });
+        } else {
+            showToast('⚠️ Notifications blocked. Enable in browser settings.');
+        }
+    });
+}
+
+function updateNotifUI() {
+    const perm = ('Notification' in window) ? Notification.permission : 'not-supported';
+    const label   = document.getElementById('wl-notif-label');
+    const hdrBtn  = document.getElementById('browser-notif-btn');
+    const hdrLbl  = document.getElementById('hdr-notif-label');
+    const wlStatus = document.getElementById('wl-notif-status');
+
+    if (perm === 'granted') {
+        if (label)   label.textContent   = '🔔 Alerts ON';
+        if (hdrLbl)  hdrLbl.textContent  = 'ALERTS ON';
+        if (hdrBtn)  { hdrBtn.style.borderColor='rgba(0,200,150,0.4)'; hdrBtn.style.color='#00C896'; }
+        if (wlStatus){ wlStatus.style.borderColor='rgba(0,200,150,0.4)'; wlStatus.style.color='#00C896'; }
+    } else if (perm === 'denied') {
+        if (label)   label.textContent   = '🔕 Blocked';
+        if (hdrLbl)  hdrLbl.textContent  = 'ALERTS BLOCKED';
+        if (hdrBtn)  { hdrBtn.style.borderColor='rgba(255,71,87,0.4)'; hdrBtn.style.color='#FF4757'; }
+        if (wlStatus){ wlStatus.style.borderColor='rgba(255,71,87,0.4)'; wlStatus.style.color='#FF4757'; }
+    } else {
+        if (label)   label.textContent   = '🔔 Enable Alerts';
+        if (hdrLbl)  hdrLbl.textContent  = 'PUSH ALERTS';
+    }
+}
+
+function sendBrowserNotif(title, body) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    new Notification(title, {
+        body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%23F0B429"/><text x="16" y="22" font-size="20" text-anchor="middle" fill="%23080C14" font-family="sans-serif" font-weight="bold">Q</text></svg>'
+    });
+}
+
+// Also fire browser notif for monthly reminder
+const _origCheckForMonthlyReminder = checkForMonthlyReminder;
+function checkForMonthlyReminder() {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${now.getMonth()}`;
+    if (financeData.lastReminderMonth !== key) {
+        document.getElementById('reminder-badge').classList.remove('hidden');
+        // Send browser push too
+        const monthName = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        sendBrowserNotif('📅 QUALTRIM Monthly Update', `Time to log your ${monthName} salary, investments & expenses!`);
+    }
+}
+
+// ================================================================
+//  WATCHLIST DATA & LOGIC
+// ================================================================
+if (!financeData.watchlist) financeData.watchlist = [];
+
+let _wlAutoRefreshTimer = null;
+
+function showAddWatchlistModal() {
+    ['wl-ticker','wl-cmp','wl-target','wl-notes'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const st = document.getElementById('wl-fetch-status');
+    if (st) { st.textContent=''; st.classList.add('hidden'); }
+    document.getElementById('add-watchlist-modal').classList.remove('hidden');
+}
+
+async function fetchWatchlistCmp() {
+    const ticker = document.getElementById('wl-ticker').value.trim().toUpperCase();
+    if (!ticker) { showToast('⚠️ Enter ticker first.'); return; }
+    const st = document.getElementById('wl-fetch-status');
+    st.textContent = '⏳ Fetching price…'; st.classList.remove('hidden');
+    st.className = 'text-[10px] text-white/50 mt-1';
+    try {
+        const r = await fetchStockPrice(ticker);
+        if (r && r.price > 0) {
+            document.getElementById('wl-cmp').value = r.price.toFixed(2);
+            st.textContent = `✅ CMP: ₹${r.price.toFixed(2)}`;
+            st.className = 'text-[10px] text-[#00C896] mt-1';
+        } else throw new Error('no price');
+    } catch {
+        st.textContent = '⚠️ Could not fetch — enter CMP manually.';
+        st.className = 'text-[10px] text-[#F0B429] mt-1';
+    }
+}
+
+function saveWatchlistStock() {
+    const ticker = document.getElementById('wl-ticker').value.trim().toUpperCase();
+    const cmp    = parseFloat(document.getElementById('wl-cmp').value);
+    const target = parseFloat(document.getElementById('wl-target').value);
+    const notes  = document.getElementById('wl-notes').value.trim();
+    if (!ticker)         { showToast('⚠️ Enter a ticker symbol.');    return; }
+    if (isNaN(target) || target <= 0) { showToast('⚠️ Enter a valid target buy price.'); return; }
+    if (!financeData.watchlist) financeData.watchlist = [];
+    financeData.watchlist.push({
+        ticker,
+        cmp: isNaN(cmp) ? null : +cmp.toFixed(2),
+        target: +target.toFixed(2),
+        notes,
+        addedAt: new Date().toISOString(),
+        triggered: false,
+        lastUpdated: null
+    });
+    saveToLocalStorage();
+    closeModal('add-watchlist-modal');
+    renderWatchlist();
+    showToast(`✅ ${ticker} added to watchlist (target ₹${target.toFixed(2)})`);
+}
+
+function deleteWatchlistStock(i) {
+    const ticker = financeData.watchlist[i]?.ticker || '';
+    showConfirm(`Remove ${ticker} from your watchlist?`, () => {
+        financeData.watchlist.splice(i, 1);
+        saveToLocalStorage();
+        renderWatchlist();
+        showToast(`🗑️ ${ticker} removed from watchlist.`);
+    });
+}
+
+function renderWatchlist() {
+    if (!financeData.watchlist) financeData.watchlist = [];
+    const tbody = document.getElementById('watchlist-table-body');
+    const emptyRow = document.getElementById('wl-empty-row');
+    const list = financeData.watchlist;
+
+    // KPI
+    const triggeredCount = list.filter(w => w.cmp !== null && w.cmp <= w.target).length;
+    const el = document.getElementById('wl-kpi-count');
+    if (el) el.textContent = list.length;
+    const tel = document.getElementById('wl-kpi-triggered');
+    if (tel) tel.textContent = triggeredCount;
+
+    // Sidebar badge
+    const badge = document.getElementById('watchlist-alert-badge');
+    if (badge) { triggeredCount > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden'); }
+
+    if (list.length === 0) {
+        if (emptyRow) emptyRow.style.display = '';
+        // Remove other rows
+        Array.from(tbody.rows).forEach(r => { if (r.id !== 'wl-empty-row') r.remove(); });
+        return;
+    }
+    if (emptyRow) emptyRow.style.display = 'none';
+
+    // Rebuild rows
+    Array.from(tbody.rows).forEach(r => { if (r.id !== 'wl-empty-row') r.remove(); });
+
+    list.forEach((w, i) => {
+        const cmp     = w.cmp;
+        const target  = w.target;
+        const hit     = cmp !== null && cmp <= target;
+        const dist    = cmp !== null ? (((cmp - target) / target) * 100).toFixed(1) : null;
+        const distStr = dist !== null ? (parseFloat(dist) >= 0 ? `▲ ${dist}% above` : `▼ ${Math.abs(dist)}% below`) : '--';
+        const distCol = dist === null ? 'rgba(255,255,255,0.4)' : parseFloat(dist) >= 0 ? 'rgba(255,255,255,0.6)' : '#00C896';
+        const statusBadge = hit
+            ? `<span style="background:rgba(0,200,150,0.15); color:#00C896; border:1px solid rgba(0,200,150,0.3); border-radius:6px; padding:3px 10px; font-size:11px; white-space:nowrap;">🎯 BUY NOW</span>`
+            : `<span style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.45); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 10px; font-size:11px; white-space:nowrap;">Watching</span>`;
+        const rowBg = hit ? 'background:rgba(0,200,150,0.04);' : '';
+        const updatedStr = w.lastUpdated ? new Date(w.lastUpdated).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '--';
+
+        const tr = document.createElement('tr');
+        tr.style.cssText = rowBg + 'border-bottom:1px solid rgba(255,255,255,0.05);';
+        tr.innerHTML = `
+            <td class="py-3 px-5">
+                <div class="font-semibold" style="color:#F0F2F8;">${w.ticker}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">Added ${new Date(w.addedAt).toLocaleDateString('en-IN')}</div>
+            </td>
+            <td class="py-3 px-5">
+                <div class="font-semibold" style="color:${hit?'#00C896':'#F0F2F8'};">
+                    ${cmp !== null ? '₹' + cmp.toLocaleString('en-IN',{maximumFractionDigits:2}) : '<span style="color:rgba(255,255,255,0.3);">--</span>'}
+                </div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">Updated ${updatedStr}</div>
+            </td>
+            <td class="py-3 px-5 font-semibold" style="color:#F0B429;">₹${target.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+            <td class="py-3 px-5" style="color:${distCol}; font-size:12px;">${distStr}</td>
+            <td class="py-3 px-5">${statusBadge}</td>
+            <td class="py-3 px-5" style="color:rgba(255,255,255,0.4); font-size:12px;">${w.notes || '--'}</td>
+            <td class="py-3 px-5 text-right">
+                <button onclick="deleteWatchlistStock(${i})" class="text-red-400/60 hover:text-red-400 text-xs px-2 py-1 border border-transparent hover:border-red-400/30 rounded" style="font-family:'DM Mono',monospace;">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function refreshWatchlistPrices() {
+    const icon = document.getElementById('wl-refresh-icon');
+    if (icon) icon.classList.add('fa-spin');
+    if (!financeData.watchlist || financeData.watchlist.length === 0) {
+        if (icon) icon.classList.remove('fa-spin');
+        showToast('ℹ️ No stocks on watchlist yet.');
+        return;
+    }
+    showToast(`⏳ Refreshing ${financeData.watchlist.length} watchlist price(s)…`);
+
+    const previouslyHit = new Set(financeData.watchlist.filter(w => w.cmp !== null && w.cmp <= w.target).map(w => w.ticker));
+
+    await Promise.allSettled(financeData.watchlist.map(async (w, i) => {
+        try {
+            const r = await fetchStockPrice(w.ticker);
+            if (r && r.price > 0) {
+                financeData.watchlist[i].cmp = +r.price.toFixed(2);
+                financeData.watchlist[i].lastUpdated = new Date().toISOString();
+            }
+        } catch(e) {}
+    }));
+
+    // Fire notifications for newly triggered stocks
+    financeData.watchlist.forEach(w => {
+        const isNowHit = w.cmp !== null && w.cmp <= w.target;
+        if (isNowHit && !previouslyHit.has(w.ticker)) {
+            sendBrowserNotif(
+                `🎯 ${w.ticker} hit your target!`,
+                `CMP ₹${w.cmp?.toFixed(2)} ≤ Target ₹${w.target.toFixed(2)} — Time to buy!`
+            );
+            showToast(`🎯 ${w.ticker} hit ₹${w.cmp?.toFixed(2)} — at or below target ₹${w.target.toFixed(2)}!`);
+        }
+    });
+
+    // Update last refresh time
+    const lr = document.getElementById('wl-kpi-lastrefresh');
+    if (lr) lr.textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+    saveToLocalStorage();
+    renderWatchlist();
+    if (icon) icon.classList.remove('fa-spin');
+}
+
+function startWatchlistAutoRefresh() {
+    if (_wlAutoRefreshTimer) clearInterval(_wlAutoRefreshTimer);
+    _wlAutoRefreshTimer = setInterval(() => {
+        if (financeData.watchlist && financeData.watchlist.length > 0) {
+            refreshWatchlistPrices();
+        }
+    }, 5 * 60 * 1000); // every 5 minutes
 }
 </script>
 </body>
