@@ -244,6 +244,78 @@
     <span id="toast-msg"></span>
 </div>
 
+
+<!-- ===================== AUTH OVERLAY ===================== -->
+<div id="auth-overlay" style="position:fixed;inset:0;z-index:9000;background:#080C14;display:flex;align-items:center;justify-content:center;padding:1rem;">
+    <div style="width:100%;max-width:420px;">
+        <div style="text-align:center;margin-bottom:2rem;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:linear-gradient(135deg,#F0B429,#FF6B35);border-radius:14px;font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#080C14;margin-bottom:12px;">Q</div>
+            <h1 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.04em;color:#F0F2F8;margin:0;">QUALTRIM</h1>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:4px;font-family:'DM Mono',monospace;">Your Personal Finance OS</p>
+        </div>
+
+        <!-- STEP 1: Firebase Setup -->
+        <div id="auth-step-firebase">
+            <div style="background:#0D1320;border:1px solid rgba(240,180,41,0.2);border-radius:16px;padding:28px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                    <div style="width:28px;height:28px;background:rgba(240,180,41,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-database" style="color:#F0B429;font-size:12px;"></i>
+                    </div>
+                    <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#F0F2F8;margin:0;">One-time Cloud Setup</h2>
+                </div>
+                <p style="color:rgba(255,255,255,0.4);font-size:11px;font-family:'DM Mono',monospace;margin-bottom:20px;">Connect a free Firebase project so your data syncs across all devices.</p>
+                <div style="background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.15);border-radius:10px;padding:14px;margin-bottom:20px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.6);line-height:1.8;">
+                    <p style="color:#F0B429;font-weight:600;margin-bottom:6px;">Setup in 3 steps (free):</p>
+                    <p>1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:#60a5fa;">console.firebase.google.com</a></p>
+                    <p>2. Create project → Build → <strong style="color:#fff;">Realtime Database</strong> → Create database → Start in <strong style="color:#fff;">test mode</strong></p>
+                    <p>3. Copy the URL shown (e.g. <code style="color:#00C896;">https://xxx-rtdb.firebaseio.com</code>)</p>
+                </div>
+                <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);">Firebase Realtime Database URL</label>
+                <input id="fb-url-input" type="url" placeholder="https://your-project-default-rtdb.firebaseio.com" class="inp" style="margin-top:6px;" onkeydown="if(event.key==='Enter')saveFirebaseConfig()">
+                <p style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;font-family:'DM Mono',monospace;">No credit card needed. Firebase free tier handles personal finance data easily.</p>
+                <button onclick="saveFirebaseConfig()" class="btn-primary" style="width:100%;margin-top:16px;padding:14px;border-radius:10px;font-size:13px;border:none;cursor:pointer;">
+                    <i class="fa-solid fa-link" style="margin-right:8px;"></i>Connect &amp; Continue
+                </button>
+                <button onclick="useLocalOnly()" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;font-size:11px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:pointer;font-family:'DM Mono',monospace;">
+                    Skip — use this device only (no sync)
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Login / Register -->
+        <div id="auth-step-login" style="display:none;">
+            <div style="background:#0D1320;border:1px solid rgba(240,180,41,0.2);border-radius:16px;padding:28px;">
+                <div style="display:flex;gap:4px;margin-bottom:24px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px;">
+                    <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;background:rgba(240,180,41,0.15);color:#F0B429;font-weight:600;">Sign In</button>
+                    <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;background:transparent;color:rgba(255,255,255,0.4);">Create Account</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    <div>
+                        <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);">Username</label>
+                        <input id="auth-username" type="text" placeholder="e.g. rahul" class="inp" style="margin-top:6px;" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('auth-password').focus()">
+                    </div>
+                    <div>
+                        <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);">Password</label>
+                        <div style="position:relative;margin-top:6px;">
+                            <input id="auth-password" type="password" placeholder="Enter password" class="inp" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAuth()" style="padding-right:40px;">
+                            <button onclick="toggleAuthPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);" tabindex="-1"><i id="auth-pw-eye" class="fa-solid fa-eye" style="font-size:13px;"></i></button>
+                        </div>
+                    </div>
+                    <p id="auth-error" style="color:#FF4757;font-size:11px;font-family:'DM Mono',monospace;display:none;margin:0;"></p>
+                </div>
+                <button onclick="handleAuth()" id="auth-submit-btn" class="btn-primary" style="width:100%;margin-top:20px;padding:14px;border-radius:10px;font-size:13px;border:none;cursor:pointer;">
+                    <i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i><span id="auth-btn-label">Sign In</span>
+                </button>
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;">
+                    <i class="fa-solid fa-shield-halved" style="color:#00C896;font-size:10px;"></i>
+                    <span id="auth-sync-label" style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.3);">Synced via Firebase</span>
+                    <button onclick="resetFirebaseConfig()" style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-left:4px;">Change DB</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===================== TICKER TAPE ===================== -->
 <div class="ticker-tape" style="position: relative; z-index: 51;">
     <div class="ticker-inner" id="ticker-content">
@@ -292,8 +364,11 @@
                     <div class="font-semibold text-sm" id="header-username" style="font-family:'Syne',sans-serif; color:#F0F2F8;">Finance OS</div>
                     <div style="font-size:10px; color:rgba(255,255,255,0.4); font-family:'DM Mono',monospace;">Net Worth ₹<span id="header-networth">--</span></div>
                 </div>
-                <div class="w-8 h-8 flex items-center justify-center font-bold text-sm" style="background: linear-gradient(135deg, #F0B429, #FF6B35); border-radius: 8px; color:#080C14; font-family:'Syne',sans-serif;">A</div>
+                <div id="auth-avatar" class="w-8 h-8 flex items-center justify-center font-bold text-sm" style="background: linear-gradient(135deg, #F0B429, #FF6B35); border-radius: 8px; color:#080C14; font-family:'Syne',sans-serif;">A</div>
             </div>
+            <button onclick="logoutUser()" title="Sign out" style="color:rgba(255,255,255,0.4);font-size:11px;font-family:'DM Mono',monospace;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:6px;padding:5px 10px;display:flex;align-items:center;gap:5px;cursor:pointer;" onmouseenter="this.style.borderColor='rgba(255,71,87,0.5)';this.style.color='#FF4757'" onmouseleave="this.style.borderColor='rgba(255,71,87,0.2)';this.style.color='rgba(255,255,255,0.4)'">
+                <i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">SIGN OUT</span>
+            </button>
             <button onclick="showReminderModal()" class="relative" style="color: rgba(255,255,255,0.5);" onmouseenter="this.style.color='#F0B429'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">
                 <i class="fa-solid fa-bell text-lg"></i>
                 <span id="reminder-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center flex">!</span>
@@ -2092,6 +2167,16 @@ function checkForMonthlyReminder() {
 //  AUTO-FETCH CMP / NAV IN ADD MODAL
 // ================================================================
 
+// ── Price cache (60s TTL) — avoids redundant fetches for the same ticker ──
+const _priceCache = new Map();
+const _CACHE_TTL_MS = 60_000;
+function _getCached(key) {
+    const entry = _priceCache.get(key);
+    if (entry && Date.now() - entry.ts < _CACHE_TTL_MS) return entry.data;
+    return null;
+}
+function _setCache(key, data) { _priceCache.set(key, { data, ts: Date.now() }); }
+
 // ── Core fetch helpers ──
 async function _tryFetch(url, timeoutMs = 9000) {
     const res = await fetch(url, {
@@ -2116,11 +2201,10 @@ const _PROXIES = [
 ];
 
 async function _fetchRaw(url, timeoutMs = 7000) {
-    // Race direct + all proxies simultaneously — first success wins
-    return Promise.any([
-        _tryFetch(url, timeoutMs),
-        ..._PROXIES.map(mk => _tryFetch(mk(url), timeoutMs))
-    ]);
+    // Try direct first with a short timeout — if it works, no proxies needed
+    try { return await _tryFetch(url, 3000); } catch {}
+    // Fall back to proxies in parallel — first success wins
+    return Promise.any(_PROXIES.map(mk => _tryFetch(mk(url), timeoutMs)));
 }
 
 // ── Google Finance parsers ──
@@ -2268,57 +2352,50 @@ function _parseETMoneyDetail(text, cmp) {
     throw new Error('no dividend in ETMoney detail');
 }
 
-// ── Master price fetch: race all sources simultaneously ──
+// ── Master price fetch: cache-first, then race lean set of sources ──
 async function fetchStockPrice(rawTicker) {
-    const ticker   = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
-    const isIndex  = rawTicker.startsWith('^') || rawTicker.includes('=F');
+    const ticker  = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
+    const isIndex = rawTicker.startsWith('^') || rawTicker.includes('=F');
+
+    // Return cached result if still fresh (60 s)
+    const cached = _getCached(rawTicker);
+    if (cached) return cached;
+
     const attempts = [];
 
+    // Yahoo Finance v7 — most reliable, supports both NSE and indices
+    const yahooNS = isIndex ? rawTicker : ticker + '.NS';
+    attempts.push((async () => {
+        const text = await _fetchRaw(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooNS}`, 7000);
+        const r = _parseYahooV7(text);
+        if (!r.price || r.price <= 0) throw new Error('no price');
+        return { ...r, source: 'Yahoo Finance', sym: yahooNS };
+    })());
+
     if (!isIndex) {
-        // Google Finance – NSE and BSE in parallel
-        for (const ex of ['NSE', 'BSE']) {
-            attempts.push((async () => {
-                const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:${ex}`, 8000);
-                const unwrapped = _unwrap(html);
-                const price = _parseGoogleFinanceHTML(unwrapped);
-                if (price <= 0) throw new Error('no price');
-                const nameMatch = unwrapped.match(/<title>([^(]+)\(/);
-                return { price, name: nameMatch ? nameMatch[1].trim() : ticker, source: `Google Finance (${ex})`, sym: ticker };
-            })());
-        }
+        // Google Finance NSE fallback
+        attempts.push((async () => {
+            const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:NSE`, 8000);
+            const unwrapped = _unwrap(html);
+            const price = _parseGoogleFinanceHTML(unwrapped);
+            if (price <= 0) throw new Error('no price');
+            const nameMatch = unwrapped.match(/<title>([^(]+)\(/);
+            return { price, name: nameMatch ? nameMatch[1].trim() : ticker, source: 'Google Finance (NSE)', sym: ticker };
+        })());
 
-        // ETMoney – NSE and BSE in parallel
-        for (const ex of ['NSE', 'BSE']) {
-            attempts.push((async () => {
-                const text = await _fetchRaw(`https://api.etmoney.com/ms/pricews/v3/quotes/search?q=${encodeURIComponent(ticker)}&exchange=${ex}`, 7000);
-                const r = _parseETMoneySearch(text, ticker);
-                if (r.price <= 0) throw new Error('no price');
-                return r;
-            })());
-        }
-    }
-
-    // Yahoo Finance – v7, v8 chart, across .NS/.BO and query1/query2, all in parallel
-    const yahooSyms = rawTicker.includes('.') ? [rawTicker] : [ticker + '.NS', ticker + '.BO'];
-    for (const ySym of yahooSyms) {
-        for (const host of ['query1', 'query2']) {
-            attempts.push((async () => {
-                const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v7/finance/quote?symbols=${ySym}`, 7000);
-                const r = _parseYahooV7(text);
-                if (!r.price || r.price <= 0) throw new Error('no price');
-                return { ...r, source: 'Yahoo Finance', sym: ySym };
-            })());
-            attempts.push((async () => {
-                const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v8/finance/chart/${ySym}?interval=1d&range=1d`, 7000);
-                const r = _parseYahooChart(text);
-                if (!r.price || r.price <= 0) throw new Error('no price');
-                return { ...r, source: 'Yahoo Finance', sym: ySym };
-            })());
-        }
+        // Yahoo BSE as last resort for stocks not on NSE
+        attempts.push((async () => {
+            const text = await _fetchRaw(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}.BO`, 7000);
+            const r = _parseYahooV7(text);
+            if (!r.price || r.price <= 0) throw new Error('no price');
+            return { ...r, source: 'Yahoo Finance (BSE)', sym: ticker + '.BO' };
+        })());
     }
 
     if (!attempts.length) throw new Error('No fetch strategies for ' + rawTicker);
-    return Promise.any(attempts);
+    const result = await Promise.any(attempts);
+    _setCache(rawTicker, result); // Cache so repeat calls within 60 s are instant
+    return result;
 }
 
 // Keep old name as alias so all callers work unchanged
@@ -2545,7 +2622,7 @@ async function applyNavFromScheme(schemeCode, schemeName, statusEl) {
 }
 
 // ================================================================
-//  LIVE PRICE REFRESH  — price + dividends fetched in parallel per holding
+//  LIVE PRICE REFRESH  — batch Yahoo fetch + per-holding dividends
 // ================================================================
 async function refreshLivePrices() {
     const icon = document.getElementById('refresh-icon');
@@ -2553,35 +2630,49 @@ async function refreshLivePrices() {
     showToast('⏳ Fetching live NSE prices + dividend history…');
     let updated = 0;
 
-    await Promise.allSettled(financeData.holdings.map(async h => {
-        const baseTicker = h.ticker.replace(/\.NS$|\.BO$/i, '');
-
-        // Fetch price AND dividends simultaneously using stored CMP for dividend calc
-        const [priceRes, divRes] = await Promise.allSettled([
-            fetchStockPrice(h.ticker),
-            _fetchDividendForTicker(baseTicker, h.cmp || 0)
-        ]);
-
-        // Apply price
-        if (priceRes.status === 'fulfilled') {
-            const { price } = priceRes.value;
-            if (price && price > 0) {
-                h.cmp          = +price.toFixed(2);
-                h.currentValue = +(h.qty * h.cmp).toFixed(2);
-                updated++;
-            }
+    // ── Batch price fetch: one Yahoo request for all tickers ──
+    const holdings = financeData.holdings;
+    if (holdings.length > 0) {
+        const symbols = holdings.map(h => h.ticker.replace(/\.NS$|\.BO$/i, '') + '.NS').join(',');
+        try {
+            const text = await _fetchRaw(
+                `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`, 8000
+            );
+            const d = JSON.parse(_unwrap(text));
+            const results = d?.quoteResponse?.result || [];
+            results.forEach(q => {
+                const price = q?.regularMarketPrice;
+                if (!price || price <= 0) return;
+                const sym = (q.symbol || '').replace(/\.NS$|\.BO$/, '').toUpperCase();
+                const h = holdings.find(h => h.ticker.replace(/\.NS$|\.BO$/i, '').toUpperCase() === sym);
+                if (h) {
+                    h.cmp = +price.toFixed(2);
+                    h.currentValue = +(h.qty * h.cmp).toFixed(2);
+                    // Update cache so individual calls later are instant
+                    _setCache(h.ticker, { price, name: q.shortName || sym, source: 'Yahoo Finance', sym: q.symbol });
+                    updated++;
+                }
+            });
+        } catch (e) {
+            // Batch failed — fall back to individual fetches
+            await Promise.allSettled(holdings.map(async h => {
+                try {
+                    const { price } = await fetchStockPrice(h.ticker);
+                    if (price && price > 0) { h.cmp = +price.toFixed(2); h.currentValue = +(h.qty * h.cmp).toFixed(2); updated++; }
+                } catch {}
+            }));
         }
+    }
 
-        // Apply dividend (recalculate annualAmount if fetched with stale CMP)
-        if (divRes.status === 'fulfilled') {
-            const { annualAmount, yieldDecimal } = divRes.value;
+    // ── Fetch dividends in parallel (uses per-holding CMP now updated above) ──
+    await Promise.allSettled(holdings.map(async h => {
+        const baseTicker = h.ticker.replace(/\.NS$|\.BO$/i, '');
+        try {
+            const { annualAmount, yieldDecimal } = await _fetchDividendForTicker(baseTicker, h.cmp || 0);
             let annualDiv   = annualAmount;
             let divYieldPct = yieldDecimal;
-
-            // If dividend was fetched as a yield and we now have a fresher CMP, recalculate
             if (annualDiv <= 0 && divYieldPct > 0 && h.cmp > 0)
                 annualDiv = +(divYieldPct * h.cmp).toFixed(2);
-
             if (annualDiv > 0) {
                 h.isDividendStock = true;
                 h.annualDividend  = +annualDiv.toFixed(2);
@@ -2593,7 +2684,7 @@ async function refreshLivePrices() {
                 h.annualDividend  = 0;
                 h.dividendYield   = 0;
             }
-        }
+        } catch {}
     }));
 
     icon.classList.remove('fa-spin');
@@ -3674,18 +3765,9 @@ function setGreeting() {
 // ================================================================
 //  INIT
 // ================================================================
-window.addEventListener('load', async () => {
-    loadFromLocalStorage();
+// ── initApp: called after successful auth ──
+async function initApp() {
     await restoreCsvHandle();
-
-    // First-run: prompt for name if not set
-    if (!financeData.userName) {
-        const name = prompt('Welcome to QUALTRIM! What\'s your name?');
-        if (name && name.trim()) {
-            financeData.userName = name.trim();
-            saveToLocalStorage();
-        }
-    }
     setGreeting();
     updateClock();
     setInterval(updateClock, 30000);
@@ -3788,6 +3870,46 @@ window.addEventListener('load', async () => {
     startWatchlistAutoRefresh();
     // Initial watchlist price refresh after 4 seconds
     if (financeData.watchlist.length > 0) setTimeout(refreshWatchlistPrices, 4000);
+    // Save to cloud on first login if user is new
+    if (_currentUser && !_isLocalOnly) setTimeout(pushToFirebase, 2000);
+}
+
+// ── BOOT: handle auth gating ──
+window.addEventListener('load', async () => {
+    // Show auth overlay by default
+    document.getElementById('auth-overlay').style.display = 'flex';
+
+    const fbUrl  = localStorage.getItem('qt_firebase_url_v2');
+    const session = localStorage.getItem('qt_session_v2');
+
+    if (fbUrl) {
+        _fbUrl = fbUrl;
+        // Show login step; try auto-login from saved session
+        document.getElementById('auth-step-firebase').style.display = 'none';
+        document.getElementById('auth-step-login').style.display    = '';
+        document.getElementById('auth-username').value = session || '';
+
+        // Try silent re-login
+        if (session) {
+            const ok = await tryAutoLogin();
+            if (ok) {
+                const av = document.getElementById('auth-avatar');
+                if (av) av.textContent = session.charAt(0).toUpperCase();
+                finishLogin(financeData.userName || session);
+                return;
+            }
+            // Session expired / invalid — stay on login screen
+            document.getElementById('auth-username').value = session;
+            document.getElementById('auth-password').focus();
+        } else {
+            document.getElementById('auth-username').focus();
+        }
+    } else {
+        // No Firebase configured yet — show setup screen
+        document.getElementById('auth-step-firebase').style.display = '';
+        document.getElementById('auth-step-login').style.display    = 'none';
+        document.getElementById('auth-sync-label').textContent      = 'No Firebase connected yet';
+    }
 });
 
 async function autoSeedBaselineIfEmpty() {
@@ -4084,6 +4206,296 @@ function startWatchlistAutoRefresh() {
         }
     }, 5 * 60 * 1000); // every 5 minutes
 }
+
+
+// ================================================================
+//  FIREBASE AUTH & SYNC
+// ================================================================
+const QT_FB_KEY  = 'qt_firebase_url_v2';
+const QT_SESSION = 'qt_session_v2';
+let _fbUrl       = null;   // Firebase DB base URL (no trailing slash)
+let _currentUser = null;   // { username, passwordHash }
+let _isLocalOnly = false;
+
+// -- SHA-256 hash (Web Crypto) --
+async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// -- Sanitise username for Firebase key --
+function fbKey(username) {
+    return username.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+}
+
+// -- Low-level Firebase REST helpers --
+async function fbGet(path) {
+    const r = await fetch(`${_fbUrl}/${path}.json`);
+    if (!r.ok) throw new Error('Firebase GET failed: ' + r.status);
+    return r.json();
+}
+async function fbPut(path, data) {
+    const r = await fetch(`${_fbUrl}/${path}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error('Firebase PUT failed: ' + r.status);
+}
+async function fbPatch(path, data) {
+    const r = await fetch(`${_fbUrl}/${path}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error('Firebase PATCH failed: ' + r.status);
+}
+
+// -- Push financeData to Firebase --
+async function pushToFirebase() {
+    if (_isLocalOnly || !_currentUser || !_fbUrl) return;
+    try {
+        await fbPut(`qualtrim_users/${fbKey(_currentUser.username)}/data`, financeData);
+        document.getElementById('save-status').textContent = '☁ Cloud saved ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    } catch(e) {
+        console.warn('Firebase push failed:', e);
+    }
+}
+
+// -- Override saveToLocalStorage to also push cloud --
+const _origSaveToLS = saveToLocalStorage;
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem('qualtrimFinanceData_v28', JSON.stringify(financeData));
+        document.getElementById('save-status').textContent = 'Saved ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    } catch(e) {}
+    syncCsvFile();
+    pushToFirebase(); // non-blocking
+}
+
+// ---- AUTH UI HELPERS ----
+function switchAuthTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('tab-login').style.background    = isLogin ? 'rgba(240,180,41,0.15)' : 'transparent';
+    document.getElementById('tab-login').style.color         = isLogin ? '#F0B429' : 'rgba(255,255,255,0.4)';
+    document.getElementById('tab-register').style.background = !isLogin ? 'rgba(240,180,41,0.15)' : 'transparent';
+    document.getElementById('tab-register').style.color      = !isLogin ? '#F0B429' : 'rgba(255,255,255,0.4)';
+    document.getElementById('auth-btn-label').textContent    = isLogin ? 'Sign In' : 'Create Account';
+    document.getElementById('auth-submit-btn').querySelector('i').className = isLogin ? 'fa-solid fa-right-to-bracket' : 'fa-solid fa-user-plus';
+    document.getElementById('auth-error').style.display = 'none';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-username').focus();
+}
+
+function toggleAuthPw() {
+    const inp = document.getElementById('auth-password');
+    const eye = document.getElementById('auth-pw-eye');
+    if (inp.type === 'password') { inp.type = 'text';  eye.className = 'fa-solid fa-eye-slash'; }
+    else                         { inp.type = 'password'; eye.className = 'fa-solid fa-eye'; }
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function saveFirebaseConfig() {
+    const raw = (document.getElementById('fb-url-input').value || '').trim().replace(/\/+$/, '');
+    if (!raw.startsWith('https://') || !raw.includes('firebaseio.com')) {
+        alert('Please enter a valid Firebase Realtime Database URL (must start with https:// and contain firebaseio.com)');
+        return;
+    }
+    localStorage.setItem(QT_FB_KEY, raw);
+    _fbUrl = raw;
+    _isLocalOnly = false;
+    document.getElementById('auth-step-firebase').style.display = 'none';
+    document.getElementById('auth-step-login').style.display = '';
+    document.getElementById('auth-username').focus();
+}
+
+function resetFirebaseConfig() {
+    localStorage.removeItem(QT_FB_KEY);
+    localStorage.removeItem(QT_SESSION);
+    document.getElementById('auth-step-login').style.display = 'none';
+    document.getElementById('auth-step-firebase').style.display = '';
+    document.getElementById('fb-url-input').value = '';
+}
+
+function useLocalOnly() {
+    _isLocalOnly = true;
+    _fbUrl = null;
+    localStorage.removeItem(QT_FB_KEY);
+    document.getElementById('auth-sync-label').textContent = 'Local only — no sync';
+    document.getElementById('auth-step-firebase').style.display = 'none';
+    // Fake login with just a name prompt
+    const name = prompt('Welcome! Enter your name:') || 'User';
+    financeData.userName = name.trim();
+    loadFromLocalStorage();
+    finishLogin(name.trim());
+}
+
+async function handleAuth() {
+    const username = (document.getElementById('auth-username').value || '').trim();
+    const password = (document.getElementById('auth-password').value || '');
+    const isRegister = document.getElementById('auth-btn-label').textContent.includes('Create');
+
+    if (!username) { showAuthError('Please enter a username.'); return; }
+    if (password.length < 4) { showAuthError('Password must be at least 4 characters.'); return; }
+
+    const btn = document.getElementById('auth-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>Please wait…';
+    document.getElementById('auth-error').style.display = 'none';
+
+    try {
+        const hash = await sha256(password);
+        const key  = fbKey(username);
+        const user = await fbGet(`qualtrim_users/${key}`);
+
+        if (isRegister) {
+            if (user && user.passwordHash) {
+                showAuthError('Username already taken. Sign in or choose another.');
+                return;
+            }
+            // Create new user with empty data
+            await fbPatch(`qualtrim_users/${key}`, { passwordHash: hash, createdAt: new Date().toISOString() });
+            _currentUser = { username: key, passwordHash: hash };
+            saveSession(key);
+            finishLogin(username);
+        } else {
+            if (!user || !user.passwordHash) {
+                showAuthError('No account found. Switch to Create Account.');
+                return;
+            }
+            if (user.passwordHash !== hash) {
+                showAuthError('Incorrect password. Try again.');
+                return;
+            }
+            _currentUser = { username: key, passwordHash: hash };
+            saveSession(key);
+            // Load cloud data
+            if (user.data) {
+                financeData = { ...financeData, ...user.data };
+                if (!Array.isArray(financeData.holdings))    financeData.holdings    = [];
+                if (!Array.isArray(financeData.bonds))       financeData.bonds       = [];
+                if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
+                if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+                if (!Array.isArray(financeData.watchlist))   financeData.watchlist   = [];
+                if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
+                    financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
+                }
+            }
+            // Also merge local localStorage data if present
+            try {
+                const localRaw = localStorage.getItem('qualtrimFinanceData_v28');
+                if (localRaw) {
+                    const localData = JSON.parse(localRaw);
+                    // Only use local data if cloud had none
+                    if (!user.data) financeData = { ...financeData, ...localData };
+                }
+            } catch(e) {}
+
+            finishLogin(username);
+        }
+    } catch(err) {
+        showAuthError('Connection error. Check your Firebase URL and internet connection.');
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i><span id="auth-btn-label">' + (document.getElementById('auth-btn-label')?.textContent || 'Sign In') + '</span>';
+    }
+}
+
+function saveSession(username) {
+    try { localStorage.setItem(QT_SESSION, username); } catch(e) {}
+}
+
+async function tryAutoLogin() {
+    const fbUrl = localStorage.getItem(QT_FB_KEY);
+    const session = localStorage.getItem(QT_SESSION);
+    if (!fbUrl || !session) return false;
+    _fbUrl = fbUrl;
+    try {
+        const key  = fbKey(session);
+        const user = await fbGet(`qualtrim_users/${key}`);
+        if (!user || !user.passwordHash) return false;
+        _currentUser = { username: key, passwordHash: user.passwordHash };
+        if (user.data) {
+            financeData = { ...financeData, ...user.data };
+            if (!Array.isArray(financeData.holdings))    financeData.holdings    = [];
+            if (!Array.isArray(financeData.bonds))       financeData.bonds       = [];
+            if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
+            if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+            if (!Array.isArray(financeData.watchlist))   financeData.watchlist   = [];
+            if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
+                financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
+            }
+        }
+        return true;
+    } catch(e) { return false; }
+}
+
+function finishLogin(displayName) {
+    // Update avatar initial
+    const initials = displayName.trim().charAt(0).toUpperCase();
+    const av = document.getElementById('auth-avatar');
+    if (av) av.textContent = initials;
+    // Hide overlay
+    document.getElementById('auth-overlay').style.display = 'none';
+    // Set userName if not already set
+    if (!financeData.userName) financeData.userName = displayName.trim();
+    // Trigger main app init
+    initApp();
+}
+
+function logoutUser() {
+    if (!confirm('Sign out? Your data is saved in the cloud.')) return;
+    localStorage.removeItem(QT_SESSION);
+    _currentUser = null;
+    _isLocalOnly = false;
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('auth-step-login').style.display = '';
+    const fbUrl = localStorage.getItem(QT_FB_KEY);
+    document.getElementById('auth-step-firebase').style.display = fbUrl ? 'none' : '';
+    document.getElementById('auth-step-login').style.display   = fbUrl ? '' : 'none';
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-error').style.display = 'none';
+    // Reset financeData
+    financeData = {
+        netWorth:0, totalPortfolio:0, equityPortfolio:0, cash:0, savings:0, dividends:0,
+        holdings:[], bonds:[], mutualFunds:[], salaryEntries:[], watchlist:[],
+        benchmarkData:{dates:[],portfolio:[],nifty50:[],sensex:[],gold:[],basePortfolio:null,baseNifty:null,baseSensex:null,baseGold:null},
+        lastReminderMonth:null, userName:''
+    };
+}
+
+// ── Enter key support for all modals ──
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    // Don't trigger on textarea
+    if (e.target && e.target.tagName === 'TEXTAREA') return;
+
+    const modalMap = [
+        { id: 'add-watchlist-modal', fn: saveWatchlistStock },
+        { id: 'add-modal',           fn: addInvestment      },
+        { id: 'buy-modal',           fn: confirmBuyMore     },
+        { id: 'edit-modal',          fn: saveEdit           },
+        { id: 'savings-modal',       fn: saveSavings        },
+        { id: 'salary-modal',        fn: saveSalaryEntry    },
+        { id: 'email-settings-modal',fn: saveEmailSettings  },
+    ];
+
+    for (const { id, fn } of modalMap) {
+        const modal = document.getElementById(id);
+        if (modal && !modal.classList.contains('hidden')) {
+            e.preventDefault();
+            fn();
+            return;
+        }
+    }
+});
 </script>
 </body>
 </html>
