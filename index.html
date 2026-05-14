@@ -409,6 +409,14 @@
                 <i class="fa-solid fa-file-csv" style="color:#00C896;"></i>
                 <span id="csv-link-label">LINK CSV</span>
             </button>
+            <button onclick="openSessionsModal()"
+                    class="flex items-center gap-x-1.5 font-semibold px-4 py-2 text-xs"
+                    style="background:rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.25); border-radius:6px; color:rgba(96,165,250,0.85); font-family:'DM Mono',monospace;"
+                    onmouseenter="this.style.background='rgba(96,165,250,0.18)';this.style.borderColor='rgba(96,165,250,0.5)';this.style.color='#60a5fa'"
+                    onmouseleave="this.style.background='rgba(96,165,250,0.08)';this.style.borderColor='rgba(96,165,250,0.25)';this.style.color='rgba(96,165,250,0.85)'">
+                <i class="fa-solid fa-layer-group"></i>
+                <span id="sessions-btn-label">SESSIONS</span>
+            </button>
             <button onclick="exportToExcel()"
                     class="flex items-center gap-x-1.5 font-semibold px-4 py-2 text-xs"
                     style="background:rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.3); border-radius:6px; color:#F0B429; font-family:'DM Mono',monospace;"
@@ -4707,6 +4715,276 @@ function saveTodoTask() {
 
 // Render on page load (will be called after initApp too)
 document.addEventListener('DOMContentLoaded', () => setTimeout(renderTodos, 300));
+</script>
+
+<!-- ===================== SESSIONS MODAL ===================== -->
+<div id="sessions-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center" style="background:rgba(4,1,10,0.82); backdrop-filter:blur(6px);">
+    <div style="background:#0D0818; border:1px solid rgba(96,165,250,0.25); border-radius:16px; width:100%; max-width:560px; padding:0; overflow:hidden; box-shadow:0 0 60px rgba(96,165,250,0.12);">
+        <!-- Header -->
+        <div style="padding:20px 24px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                <div style="font-size:9px; letter-spacing:0.18em; color:rgba(96,165,250,0.7); font-family:'DM Mono',monospace; text-transform:uppercase; margin-bottom:4px;"><i class="fa-solid fa-layer-group" style="margin-right:6px;"></i>PLANNING SESSIONS</div>
+                <div style="font-family:'Syne',sans-serif; font-size:1.25rem; font-weight:700; color:#F0F2F8;">Saved Snapshots</div>
+            </div>
+            <button onclick="closeSessionsModal()" style="color:rgba(255,255,255,0.35); font-size:18px; background:none; border:none; cursor:pointer; padding:4px 8px; border-radius:6px;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.35)'"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <!-- Active session banner -->
+        <div id="sessions-active-banner" class="hidden" style="margin:16px 24px 0; padding:10px 14px; background:rgba(96,165,250,0.07); border:1px solid rgba(96,165,250,0.2); border-radius:8px; display:flex; align-items:center; gap:10px; font-family:'DM Mono',monospace; font-size:12px; color:#60a5fa;">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Viewing session: <strong id="sessions-active-name" style="color:#93c5fd;"></strong></span>
+            <button onclick="exitSession()" style="margin-left:auto; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; padding:3px 8px; cursor:pointer;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">← Back to live</button>
+        </div>
+        <!-- Save new session row -->
+        <div style="padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:center;">
+            <input id="session-name-input" type="text" placeholder="Session name (e.g. Next Month Goals)" maxlength="60"
+                style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:9px 13px; color:#E8EAF0; font-family:'DM Mono',monospace; font-size:12px; outline:none;"
+                onfocus="this.style.borderColor='rgba(96,165,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+                onkeydown="if(event.key==='Enter')saveCurrentSession()">
+            <button onclick="saveCurrentSession()"
+                style="white-space:nowrap; background:rgba(96,165,250,0.12); border:1px solid rgba(96,165,250,0.3); border-radius:8px; padding:9px 16px; color:#60a5fa; font-family:'DM Mono',monospace; font-size:12px; font-weight:600; cursor:pointer;"
+                onmouseenter="this.style.background='rgba(96,165,250,0.22)'" onmouseleave="this.style.background='rgba(96,165,250,0.12)'">
+                <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>SAVE NOW
+            </button>
+        </div>
+        <!-- Sessions list -->
+        <div id="sessions-list-container" style="padding:16px 24px 24px; max-height:340px; overflow-y:auto;">
+            <div id="sessions-list-inner">
+                <div style="text-align:center; padding:32px 0; color:rgba(255,255,255,0.25); font-family:'DM Mono',monospace; font-size:13px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>Loading sessions…</div>
+            </div>
+        </div>
+        <!-- Status -->
+        <div id="sessions-status" style="padding:0 24px 16px; font-family:'DM Mono',monospace; font-size:11px; color:rgba(96,165,250,0.6); min-height:20px;"></div>
+    </div>
+</div>
+
+<script>
+// ===================== SESSIONS FEATURE =====================
+let _activeSession = null; // { key, name } or null
+let _liveFinanceDataBackup = null; // snapshot of live data before loading a session
+
+function openSessionsModal() {
+    if (_isLocalOnly) {
+        alert('Sessions require Firebase sync. Please sign in with a Firebase account to use this feature.');
+        return;
+    }
+    if (!_currentUser || !_fbUrl) {
+        alert('Please sign in first to use sessions.');
+        return;
+    }
+    // Pre-fill name input with "Next Month Goals" if empty
+    const inp = document.getElementById('session-name-input');
+    if (!inp.value.trim()) inp.value = 'Next Month Goals';
+
+    // Update active banner
+    const banner = document.getElementById('sessions-active-banner');
+    if (_activeSession) {
+        banner.style.display = 'flex';
+        banner.classList.remove('hidden');
+        document.getElementById('sessions-active-name').textContent = _activeSession.name;
+    } else {
+        banner.style.display = 'none';
+    }
+
+    document.getElementById('sessions-modal').classList.remove('hidden');
+    loadAndRenderSessions();
+}
+
+function closeSessionsModal() {
+    document.getElementById('sessions-modal').classList.add('hidden');
+}
+
+async function loadAndRenderSessions() {
+    const inner = document.getElementById('sessions-list-inner');
+    inner.innerHTML = '<div style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.25);font-family:\'DM Mono\',monospace;font-size:13px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>Loading sessions…</div>';
+    try {
+        const sessions = await fbGet(`qualtrim_users/${_currentUser.username}/sessions`) || {};
+        renderSessionsList(sessions);
+    } catch(e) {
+        inner.innerHTML = '<div style="color:#FF4757;font-family:\'DM Mono\',monospace;font-size:12px;text-align:center;padding:24px;">Failed to load sessions. Check your connection.</div>';
+    }
+}
+
+function renderSessionsList(sessions) {
+    const inner = document.getElementById('sessions-list-inner');
+    const keys = Object.keys(sessions || {});
+    if (keys.length === 0) {
+        inner.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(255,255,255,0.2);font-family:\'DM Mono\',monospace;font-size:13px;"><i class="fa-solid fa-layer-group" style="font-size:24px;display:block;margin-bottom:12px;opacity:0.3;"></i>No sessions saved yet.<br><span style="font-size:11px;opacity:0.6;">Type a name above and click SAVE NOW.</span></div>';
+        return;
+    }
+
+    // Sort by savedAt descending
+    keys.sort((a, b) => {
+        const da = sessions[a].savedAt || '';
+        const db = sessions[b].savedAt || '';
+        return db.localeCompare(da);
+    });
+
+    let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+    keys.forEach(key => {
+        const s = sessions[key];
+        const isActive = _activeSession && _activeSession.key === key;
+        const dateStr = s.savedAt ? new Date(s.savedAt).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+        const netWorth = s.data && s.data.netWorth != null ? `₹${(+s.data.netWorth).toLocaleString('en-IN')}` : '—';
+        const portfolio = s.data && s.data.totalPortfolio != null ? `₹${(+s.data.totalPortfolio).toLocaleString('en-IN')}` : '—';
+
+        html += `
+        <div style="background:${isActive ? 'rgba(96,165,250,0.07)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${isActive ? 'rgba(96,165,250,0.3)' : 'rgba(255,255,255,0.07)'}; border-radius:10px; padding:14px 16px;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                        ${isActive ? '<i class="fa-solid fa-circle-check" style="color:#60a5fa;font-size:11px;"></i>' : '<i class="fa-regular fa-circle" style="color:rgba(255,255,255,0.2);font-size:11px;"></i>'}
+                        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:${isActive ? '#60a5fa' : '#E8EAF0'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.name || key)}</span>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:8px;">${dateStr}</div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                        <span style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);">Net Worth <span style="color:#F0B429;">${netWorth}</span></span>
+                        <span style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);">Portfolio <span style="color:#00C896;">${portfolio}</span></span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                    ${isActive
+                        ? `<button onclick="exitSession()" style="font-size:11px;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 12px;color:rgba(255,255,255,0.5);cursor:pointer;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">← LIVE</button>`
+                        : `<button onclick="loadSession('${escHtml(key)}')" style="font-size:11px;font-family:'DM Mono',monospace;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);border-radius:6px;padding:6px 12px;color:#60a5fa;cursor:pointer;" onmouseenter="this.style.background='rgba(96,165,250,0.2)'" onmouseleave="this.style.background='rgba(96,165,250,0.1)'">LOAD</button>`
+                    }
+                    <button onclick="deleteSession('${escHtml(key)}', '${escHtml(s.name || key)}')" style="font-size:11px;font-family:'DM Mono',monospace;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:6px;padding:6px 10px;color:rgba(255,71,87,0.7);cursor:pointer;" onmouseenter="this.style.borderColor='rgba(255,71,87,0.5)';this.style.color='#FF4757'" onmouseleave="this.style.borderColor='rgba(255,71,87,0.2)';this.style.color='rgba(255,71,87,0.7)'"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+    inner.innerHTML = html;
+}
+
+function setSessionsStatus(msg, isErr) {
+    const el = document.getElementById('sessions-status');
+    el.textContent = msg;
+    el.style.color = isErr ? '#FF4757' : 'rgba(96,165,250,0.7)';
+}
+
+function escHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function saveCurrentSession() {
+    const rawName = (document.getElementById('session-name-input').value || '').trim();
+    if (!rawName) { document.getElementById('session-name-input').focus(); return; }
+    if (!_currentUser || !_fbUrl) return;
+
+    const key = fbKey(rawName);
+    if (!key) { setSessionsStatus('Invalid session name.', true); return; }
+
+    setSessionsStatus('Saving…');
+    try {
+        const snapshot = {
+            name: rawName,
+            savedAt: new Date().toISOString(),
+            data: JSON.parse(JSON.stringify(financeData))
+        };
+        await fbPut(`qualtrim_users/${_currentUser.username}/sessions/${key}`, snapshot);
+        document.getElementById('sessions-btn-label').textContent = 'SESSIONS';
+        setSessionsStatus(`✓ Saved "${rawName}"`);
+        loadAndRenderSessions();
+    } catch(e) {
+        setSessionsStatus('Save failed. Check your connection.', true);
+    }
+}
+
+async function loadSession(key) {
+    if (!_currentUser || !_fbUrl) return;
+    setSessionsStatus('Loading…');
+    try {
+        const session = await fbGet(`qualtrim_users/${_currentUser.username}/sessions/${key}`);
+        if (!session || !session.data) { setSessionsStatus('Session data missing.', true); return; }
+
+        // Back up live data if not already in a session
+        if (!_activeSession) {
+            _liveFinanceDataBackup = JSON.parse(JSON.stringify(financeData));
+        }
+
+        // Merge session data into financeData
+        const d = session.data;
+        financeData = { ...financeData, ...d };
+        if (!Array.isArray(financeData.holdings))     financeData.holdings     = [];
+        if (!Array.isArray(financeData.bonds))         financeData.bonds        = [];
+        if (!Array.isArray(financeData.mutualFunds))   financeData.mutualFunds  = [];
+        if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+        if (!Array.isArray(financeData.watchlist))     financeData.watchlist    = [];
+        if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
+            financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
+        }
+
+        _activeSession = { key, name: session.name || key };
+
+        // Re-render everything
+        renderHoldings();
+        renderBonds();
+        renderMutualFunds();
+        if (typeof renderSalaryTable === 'function') renderSalaryTable();
+        if (typeof renderWatchlist  === 'function') renderWatchlist();
+        updateKPIs();
+
+        // Update header save-status
+        document.getElementById('save-status').textContent = `📂 Session: ${session.name || key}`;
+        document.getElementById('sessions-btn-label').textContent = '● SESSION';
+
+        // Update active banner in modal
+        document.getElementById('sessions-active-name').textContent = session.name || key;
+        const banner = document.getElementById('sessions-active-banner');
+        banner.style.display = 'flex';
+        banner.classList.remove('hidden');
+
+        setSessionsStatus(`✓ Loaded "${session.name || key}" — changes won't auto-save to cloud.`);
+        loadAndRenderSessions(); // re-render list to show active indicator
+    } catch(e) {
+        setSessionsStatus('Failed to load session. Check your connection.', true);
+    }
+}
+
+function exitSession() {
+    if (!_activeSession) return;
+    if (!_liveFinanceDataBackup) { closeSessionsModal(); return; }
+
+    financeData = JSON.parse(JSON.stringify(_liveFinanceDataBackup));
+    if (!Array.isArray(financeData.holdings))     financeData.holdings     = [];
+    if (!Array.isArray(financeData.bonds))         financeData.bonds        = [];
+    if (!Array.isArray(financeData.mutualFunds))   financeData.mutualFunds  = [];
+    if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
+    if (!Array.isArray(financeData.watchlist))     financeData.watchlist    = [];
+
+    _activeSession = null;
+    _liveFinanceDataBackup = null;
+
+    renderHoldings();
+    renderBonds();
+    renderMutualFunds();
+    if (typeof renderSalaryTable === 'function') renderSalaryTable();
+    if (typeof renderWatchlist  === 'function') renderWatchlist();
+    updateKPIs();
+
+    document.getElementById('save-status').textContent = '☁ Live data restored';
+    document.getElementById('sessions-btn-label').textContent = 'SESSIONS';
+    document.getElementById('sessions-active-banner').style.display = 'none';
+
+    closeSessionsModal();
+}
+
+async function deleteSession(key, name) {
+    if (!confirm(`Delete session "${name}"? This cannot be undone.`)) return;
+    setSessionsStatus('Deleting…');
+    try {
+        await fetch(`${_fbUrl}/qualtrim_users/${_currentUser.username}/sessions/${key}.json`, { method: 'DELETE' });
+        if (_activeSession && _activeSession.key === key) exitSession();
+        setSessionsStatus(`Deleted "${name}"`);
+        loadAndRenderSessions();
+    } catch(e) {
+        setSessionsStatus('Delete failed.', true);
+    }
+}
+
+// Close modal on backdrop click
+document.getElementById('sessions-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeSessionsModal();
+});
 </script>
 </body>
 </html>
