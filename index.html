@@ -3995,6 +3995,8 @@ window.addEventListener('load', async () => {
         document.getElementById('auth-step-firebase').style.display = 'none';
         document.getElementById('auth-step-login').style.display    = '';
         document.getElementById('auth-username').value = session || '';
+        const savedPw = localStorage.getItem(QT_PW);
+        if (savedPw) document.getElementById('auth-password').value = savedPw;
 
         // Try silent re-login
         if (session) {
@@ -4320,6 +4322,7 @@ function startWatchlistAutoRefresh() {
 // ================================================================
 const QT_FB_KEY  = 'qt_firebase_url_v2';
 const QT_SESSION = 'qt_session_v2';
+const QT_PW      = 'qt_pw_v2';
 let _fbUrl       = null;   // Firebase DB base URL (no trailing slash)
 let _currentUser = null;   // { username, passwordHash }
 let _isLocalOnly = false;
@@ -4424,6 +4427,7 @@ function saveFirebaseConfig() {
 function resetFirebaseConfig() {
     localStorage.removeItem(QT_FB_KEY);
     localStorage.removeItem(QT_SESSION);
+    localStorage.removeItem(QT_PW);
     document.getElementById('auth-step-login').style.display = 'none';
     document.getElementById('auth-step-firebase').style.display = '';
     document.getElementById('fb-url-input').value = '';
@@ -4468,7 +4472,7 @@ async function handleAuth() {
             // Create new user with empty data
             await fbPatch(`qualtrim_users/${key}`, { passwordHash: hash, createdAt: new Date().toISOString() });
             _currentUser = { username: key, passwordHash: hash };
-            saveSession(key);
+            saveSession(key, password);
             finishLogin(username);
         } else {
             if (!user || !user.passwordHash) {
@@ -4480,7 +4484,7 @@ async function handleAuth() {
                 return;
             }
             _currentUser = { username: key, passwordHash: hash };
-            saveSession(key);
+            saveSession(key, password);
             // Load cloud data
             if (user.data) {
                 financeData = { ...financeData, ...user.data };
@@ -4515,8 +4519,11 @@ async function handleAuth() {
     }
 }
 
-function saveSession(username) {
-    try { localStorage.setItem(QT_SESSION, username); } catch(e) {}
+function saveSession(username, password) {
+    try {
+        localStorage.setItem(QT_SESSION, username);
+        if (password) localStorage.setItem(QT_PW, password);
+    } catch(e) {}
 }
 
 async function tryAutoLogin() {
@@ -4561,6 +4568,7 @@ function finishLogin(displayName) {
 function logoutUser() {
     if (!confirm('Sign out? Your data is saved in the cloud.')) return;
     localStorage.removeItem(QT_SESSION);
+    localStorage.removeItem(QT_PW);
     _currentUser = null;
     _isLocalOnly = false;
     document.getElementById('auth-overlay').style.display = 'flex';
