@@ -2459,7 +2459,7 @@ function _parseETMoneyDetail(text, cmp) {
     throw new Error('no dividend in ETMoney detail');
 }
 
-// ── Master price fetch: cache-first, then race lean set of sources ──
+// ── Master price fetch: cache-first, then race expanded set of sources ──
 async function fetchStockPrice(rawTicker) {
     const ticker  = rawTicker.trim().toUpperCase().replace(/\.NS$|\.BO$/, '');
     const isIndex = rawTicker.startsWith('^') || rawTicker.includes('=F');
@@ -2470,14 +2470,27 @@ async function fetchStockPrice(rawTicker) {
 
     const attempts = [];
 
-    // Yahoo Finance v7 — most reliable, supports both NSE and indices
+    // ── Yahoo Finance v7 via query1 (NSE) ──
     const yahooNS = isIndex ? rawTicker : ticker + '.NS';
-    attempts.push((async () => {
-        const text = await _fetchRaw(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooNS}`, 7000);
+    const _tryYahooV7 = async (host, sym, label) => {
+        const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v7/finance/quote?symbols=${sym}`, 7000);
         const r = _parseYahooV7(text);
         if (!r.price || r.price <= 0) throw new Error('no price');
-        return { ...r, source: 'Yahoo Finance', sym: yahooNS };
-    })());
+        return { ...r, source: label, sym };
+    };
+    const _tryYahooChart = async (host, sym, label) => {
+        const text = await _fetchRaw(`https://${host}.finance.yahoo.com/v8/finance/chart/${sym}?interval=1m&range=1d`, 7000);
+        const r = _parseYahooChart(text);
+        if (!r.price || r.price <= 0) throw new Error('no price');
+        return { ...r, source: label, sym };
+    };
+
+    // query1 + query2 both attempted for NSE — first success wins
+    attempts.push(_tryYahooV7('query1', yahooNS, 'Yahoo Finance (NSE)'));
+    attempts.push(_tryYahooV7('query2', yahooNS, 'Yahoo Finance (NSE)'));
+    // Yahoo v8 chart endpoint — often less rate-limited
+    attempts.push(_tryYahooChart('query1', yahooNS, 'Yahoo Finance Chart'));
+    attempts.push(_tryYahooChart('query2', yahooNS, 'Yahoo Finance Chart'));
 
     if (!isIndex) {
         // Google Finance NSE fallback
@@ -2490,12 +2503,20 @@ async function fetchStockPrice(rawTicker) {
             return { price, name: nameMatch ? nameMatch[1].trim() : ticker, source: 'Google Finance (NSE)', sym: ticker };
         })());
 
-        // Yahoo BSE as last resort for stocks not on NSE
+        // Yahoo BSE fallback (both query1 + query2 + v8 chart)
+        const yahooBSE = ticker + '.BO';
+        attempts.push(_tryYahooV7('query1', yahooBSE, 'Yahoo Finance (BSE)'));
+        attempts.push(_tryYahooV7('query2', yahooBSE, 'Yahoo Finance (BSE)'));
+        attempts.push(_tryYahooChart('query1', yahooBSE, 'Yahoo Finance Chart (BSE)'));
+
+        // Google Finance BSE fallback (useful for ETFs like NIFTYBEES, GOLDBEES)
         attempts.push((async () => {
-            const text = await _fetchRaw(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}.BO`, 7000);
-            const r = _parseYahooV7(text);
-            if (!r.price || r.price <= 0) throw new Error('no price');
-            return { ...r, source: 'Yahoo Finance (BSE)', sym: ticker + '.BO' };
+            const html = await _fetchRaw(`https://www.google.com/finance/quote/${ticker}:BSE`, 8000);
+            const unwrapped = _unwrap(html);
+            const price = _parseGoogleFinanceHTML(unwrapped);
+            if (price <= 0) throw new Error('no price');
+            const nameMatch = unwrapped.match(/<title>([^(]+)\(/);
+            return { price, name: nameMatch ? nameMatch[1].trim() : ticker, source: 'Google Finance (BSE)', sym: ticker };
         })());
     }
 
