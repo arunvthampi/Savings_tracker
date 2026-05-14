@@ -1511,6 +1511,7 @@ let financeData = {
     },
     lastReminderMonth: null,
     salaryEntries: [],
+    todos: [],
     userName: ''
 };
 
@@ -1544,6 +1545,7 @@ function loadFromLocalStorage() {
         if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
         if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
         if (!Array.isArray(financeData.watchlist))     financeData.watchlist     = [];
+        if (!Array.isArray(financeData.todos))         financeData.todos         = [];
         if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
             financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
         }
@@ -4487,6 +4489,7 @@ async function handleAuth() {
                 if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
                 if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
                 if (!Array.isArray(financeData.watchlist))   financeData.watchlist   = [];
+                if (!Array.isArray(financeData.todos))       financeData.todos       = [];
                 if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
                     financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
                 }
@@ -4533,6 +4536,7 @@ async function tryAutoLogin() {
             if (!Array.isArray(financeData.mutualFunds)) financeData.mutualFunds = [];
             if (!Array.isArray(financeData.salaryEntries)) financeData.salaryEntries = [];
             if (!Array.isArray(financeData.watchlist))   financeData.watchlist   = [];
+            if (!Array.isArray(financeData.todos))       financeData.todos       = [];
             if (!financeData.benchmarkData || !Array.isArray(financeData.benchmarkData.dates)) {
                 financeData.benchmarkData = { dates:[], portfolio:[], nifty50:[], sensex:[], gold:[], basePortfolio:null, baseNifty:null, baseSensex:null, baseGold:null };
             }
@@ -4572,7 +4576,7 @@ function logoutUser() {
         netWorth:0, totalPortfolio:0, equityPortfolio:0, cash:0, savings:0, dividends:0,
         holdings:[], bonds:[], mutualFunds:[], salaryEntries:[], watchlist:[],
         benchmarkData:{dates:[],portfolio:[],nifty50:[],sensex:[],gold:[],basePortfolio:null,baseNifty:null,baseSensex:null,baseGold:null},
-        lastReminderMonth:null, userName:''
+        lastReminderMonth:null, userName:'', todos:[]
     };
 }
 
@@ -4604,10 +4608,21 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ── Next Month To-Do Checklist ──
-const TODO_KEY = 'qualtrimTodos_v1';
+const TODO_KEY = 'qualtrimTodos_v1'; // kept for one-time migration only
 
 function loadTodos() {
-    try { return JSON.parse(localStorage.getItem(TODO_KEY)) || getDefaultTodos(); } catch(e) { return getDefaultTodos(); }
+    // Use financeData.todos (syncs to Firebase). Migrate from old localStorage key once.
+    if (!Array.isArray(financeData.todos)) financeData.todos = [];
+    if (financeData.todos.length === 0) {
+        try {
+            const legacy = JSON.parse(localStorage.getItem(TODO_KEY));
+            if (legacy && legacy.length > 0) {
+                financeData.todos = legacy;
+                localStorage.removeItem(TODO_KEY); // clean up old key
+            }
+        } catch(e) {}
+    }
+    return financeData.todos.length > 0 ? financeData.todos : getDefaultTodos();
 }
 
 function getDefaultTodos() {
@@ -4619,7 +4634,8 @@ function getDefaultTodos() {
 }
 
 function saveTodos(todos) {
-    try { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); } catch(e) {}
+    financeData.todos = todos;
+    saveToLocalStorage(); // persists to localStorage AND pushes to Firebase
 }
 
 const CATEGORY_META = {
